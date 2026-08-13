@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HospitalManagement.Business/HospitalManagement.Business.csproj" Id="00958f77-613e-4b62-bc93-d3c6c9e6e679" />
+  <Project Path="HospitalManagement.DataAccess/HospitalManagement.DataAccess.csproj" Id="4af857b5-299e-49ab-8712-eb476500d545" />
+  <Project Path="HospitalManagement.Entity/HospitalManagement.Entity.csproj" Id="ad57a5c5-ded3-45af-a683-d37568fb0f74" />
+  <Project Path="HospitalManagementAPI/HospitalManagementAPI.csproj" />
+</Solution>
