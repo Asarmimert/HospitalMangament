@@ -28,12 +28,13 @@ namespace HospitalManagement.Business.Somut
         }
 
         public async Task<
-            (List<Hasta> Hastalar, int ToplamKayitSayisi)>
-            ListeleAsync(
-                int sayfaNo,
-                int sayfaBoyutu,
-                bool? aktifMi,
-                string? arama)
+    (List<Hasta> Hastalar, int ToplamKayitSayisi)>
+    ListeleAsync(
+        int sayfaNo,
+        int sayfaBoyutu,
+        bool? aktifMi,
+        string? arama,
+        CancellationToken cancellationToken = default)
         {
             if (sayfaNo < 1)
             {
@@ -51,7 +52,8 @@ namespace HospitalManagement.Business.Somut
                 sayfaNo,
                 sayfaBoyutu,
                 aktifMi,
-                arama);
+                arama,
+                cancellationToken);
         }
 
         public async Task<Hasta?> IdIleGetirAsync(int id)

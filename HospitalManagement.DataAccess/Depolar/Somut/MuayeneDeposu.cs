@@ -15,14 +15,15 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
         }
 
         public async Task<
-            (List<Muayene> Muayeneler,
-            int ToplamKayitSayisi)> ListeleAsync(
-                int sayfaNo,
-                int sayfaBoyutu,
-                int? doktorId,
-                int? hastaId,
-                DateTime? baslangicTarihi,
-                DateTime? bitisTarihi)
+       (List<Muayene> Muayeneler, int ToplamKayitSayisi)>
+       ListeleAsync(
+           int sayfaNo,
+           int sayfaBoyutu,
+           int? doktorId,
+           int? hastaId,
+           DateTime? baslangicTarihi,
+           DateTime? bitisTarihi,
+           CancellationToken cancellationToken = default)
         {
             var sorgu = _context.Muayeneler
                 .AsNoTracking()
@@ -61,13 +62,13 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
             }
 
             var toplamKayitSayisi =
-                await sorgu.CountAsync();
+                await sorgu.CountAsync(cancellationToken);
 
             var muayeneler = await sorgu
                 .OrderByDescending(x => x.MuayeneTarihi)
                 .Skip((sayfaNo - 1) * sayfaBoyutu)
                 .Take(sayfaBoyutu)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return (muayeneler, toplamKayitSayisi);
         }

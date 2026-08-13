@@ -24,13 +24,16 @@ namespace HospitalManagementAPI.Controllers
             nameof(KullaniciRolu.Sekreter))]
         [HttpGet]
         public async Task<IActionResult> GetAll(
-            [FromQuery] PatientFilterDto filtre)
+    [FromQuery] PatientFilterDto filtre,
+    CancellationToken cancellationToken)
         {
-            var sonuc = await _hastaServisi.ListeleAsync(
-                filtre.SayfaNo,
-                filtre.SayfaBoyutu,
-                filtre.AktifMi,
-                filtre.Arama);
+            var sonuc =
+    await _hastaServisi.ListeleAsync(
+        filtre.SayfaNo,
+        filtre.SayfaBoyutu,
+        filtre.AktifMi,
+        filtre.Arama,
+        cancellationToken);
 
             var hastaDtoListesi = sonuc.Hastalar
                 .Select(DtoyaDonustur)

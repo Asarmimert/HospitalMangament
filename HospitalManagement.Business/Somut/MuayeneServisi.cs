@@ -26,14 +26,15 @@ namespace HospitalManagement.Business.Somut
         }
 
         public async Task<
-            (List<Muayene> Muayeneler,
-            int ToplamKayitSayisi)> ListeleAsync(
-                int sayfaNo,
-                int sayfaBoyutu,
-                int? doktorId,
-                int? hastaId,
-                DateTime? baslangicTarihi,
-                DateTime? bitisTarihi)
+    (List<Muayene> Muayeneler, int ToplamKayitSayisi)>
+    ListeleAsync(
+        int sayfaNo,
+        int sayfaBoyutu,
+        int? doktorId,
+        int? hastaId,
+        DateTime? baslangicTarihi,
+        DateTime? bitisTarihi,
+        CancellationToken cancellationToken = default)
         {
             if (sayfaNo < 1)
             {
@@ -68,12 +69,13 @@ namespace HospitalManagement.Business.Somut
             }
 
             return await _muayeneDeposu.ListeleAsync(
-                sayfaNo,
-                sayfaBoyutu,
-                doktorId,
-                hastaId,
-                baslangicTarihi,
-                bitisTarihi);
+    sayfaNo,
+    sayfaBoyutu,
+    doktorId,
+    hastaId,
+    baslangicTarihi,
+    bitisTarihi,
+    cancellationToken);
         }
 
         public async Task<Muayene?> IdIleGetirAsync(int id)

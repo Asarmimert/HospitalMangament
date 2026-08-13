@@ -11,7 +11,8 @@ namespace HospitalManagement.DataAccess.Depolar.Soyut
                 int? doktorId,
                 int? hastaId,
                 DateTime? baslangicTarihi,
-                DateTime? bitisTarihi);
+                DateTime? bitisTarihi,
+                CancellationToken cancellationToken = default);
 
         Task<Muayene?> IliskileriyleIdIleGetirAsync(
             int id);

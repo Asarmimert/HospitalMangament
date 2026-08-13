@@ -10,7 +10,8 @@ namespace HospitalManagement.Business.Soyut
                 int sayfaBoyutu,
                 int? departmentId,
                 bool? aktifMi,
-                string? arama);
+                string? arama,
+                CancellationToken cancellationToken = default);
 
         Task<Doctor?> IdIleGetirAsync(int id);
 

@@ -18,18 +18,19 @@ namespace HospitalManagementAPI.Controllers
         {
             _doktorServisi = doktorServisi;
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAll(
-            [FromQuery] DoctorFilterDto filtre)
+            [FromQuery] DoctorFilterDto filtre,
+            CancellationToken cancellationToken)
         {
             var sonuc =
-                await _doktorServisi.ListeleAsync(
-                    filtre.SayfaNo,
-                    filtre.SayfaBoyutu,
-                    filtre.DepartmentId,
-                    filtre.AktifMi,
-                    filtre.Arama);
+     await _doktorServisi.ListeleAsync(
+         filtre.SayfaNo,
+         filtre.SayfaBoyutu,
+         filtre.DepartmentId,
+         filtre.AktifMi,
+         filtre.Arama,
+         cancellationToken);
 
             var doktorDtoListesi = sonuc.Doktorlar
                 .Select(DtoyaDonustur)

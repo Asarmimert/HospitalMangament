@@ -32,7 +32,8 @@ namespace HospitalManagementAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll(
-            [FromQuery] MuayeneFiltrelemeDto filtre)
+      [FromQuery] MuayeneFiltrelemeDto filtre,
+      CancellationToken cancellationToken)
         {
             var kullaniciHesabiId =
     User.KullaniciIdGetir();
@@ -71,13 +72,14 @@ namespace HospitalManagementAPI.Controllers
                 filtre.DoktorId = doktor.Id;
             }
             var sonuc =
-                await _muayeneServisi.ListeleAsync(
-                    filtre.SayfaNo,
-                    filtre.SayfaBoyutu,
-                    filtre.DoktorId,
-                    filtre.HastaId,
-                    filtre.BaslangicTarihi,
-                    filtre.BitisTarihi);
+    await _muayeneServisi.ListeleAsync(
+        filtre.SayfaNo,
+        filtre.SayfaBoyutu,
+        filtre.DoktorId,
+        filtre.HastaId,
+        filtre.BaslangicTarihi,
+        filtre.BitisTarihi,
+        cancellationToken);
 
             var muayeneDtoListesi = sonuc.Muayeneler
                 .Select(DtoyaDonustur)

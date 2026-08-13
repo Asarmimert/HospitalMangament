@@ -21,7 +21,8 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
                 int sayfaBoyutu,
                 int? departmentId,
                 bool? aktifMi,
-                string? arama)
+                string? arama,
+                CancellationToken cancellationToken = default)
         {
             var sorgu = _context.Doctors
                 .AsNoTracking()
@@ -56,14 +57,14 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
             }
 
             var toplamKayitSayisi =
-                await sorgu.CountAsync();
+                await sorgu.CountAsync(cancellationToken);
 
             var doktorlar = await sorgu
                 .OrderBy(x => x.DoktorAd)
                 .ThenBy(x => x.DoktorSoyad)
                 .Skip((sayfaNo - 1) * sayfaBoyutu)
                 .Take(sayfaBoyutu)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return (doktorlar, toplamKayitSayisi);
         }

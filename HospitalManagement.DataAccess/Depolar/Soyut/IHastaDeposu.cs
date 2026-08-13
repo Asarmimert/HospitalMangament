@@ -9,7 +9,8 @@ namespace HospitalManagement.DataAccess.Depolar.Soyut
                 int sayfaNo,
                 int sayfaBoyutu,
                 bool? aktifMi,
-                string? arama);
+                string? arama,
+                 CancellationToken cancellationToken = default);
 
         Task<Hasta?> IliskileriyleIdIleGetirAsync(int id);
     }

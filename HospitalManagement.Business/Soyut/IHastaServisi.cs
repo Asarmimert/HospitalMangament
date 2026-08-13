@@ -7,12 +7,12 @@ namespace HospitalManagement.Business.Soyut
         Task<Hasta?> KullaniciHesabiIdIleGetirAsync(
         int kullaniciHesabiId);
         Task<(List<Hasta> Hastalar, int ToplamKayitSayisi)>
-            ListeleAsync(
-                int sayfaNo,
-                int sayfaBoyutu,
-                bool? aktifMi,
-                string? arama);
-
+      ListeleAsync(
+          int sayfaNo,
+          int sayfaBoyutu,
+          bool? aktifMi,
+          string? arama,
+          CancellationToken cancellationToken = default);
         Task<Hasta?> IdIleGetirAsync(int id);
 
         Task<Hasta> EkleAsync(Hasta hasta);
