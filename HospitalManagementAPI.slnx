@@ -1,5 +1,9 @@
 <Solution>
-  <Folder Name="/Çözüm Öğeleri/">
+  <Folder Name="/wwroot/" />
+  <Folder Name="/wwroot/css/" />
+  <Folder Name="/wwroot/js/" />
+  <Folder Name="/wwroot/pages/" />
+  <Folder Name="/wwroot/Çözüm Öğeleri/">
     <File Path="README.md" />
   </Folder>
   <Project Path="HospitalManagement.Business/HospitalManagement.Business.csproj" Id="00958f77-613e-4b62-bc93-d3c6c9e6e679" />

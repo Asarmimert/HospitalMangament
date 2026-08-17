@@ -19,7 +19,9 @@ Sistem; kullanıcıların rollerine göre yetkilendirilmesini, kişisel sağlık
 * Fluent API
 * Dependency Injection
 * Git
-
+* HTML5
+* CSS3
+* JavaScript
 ## 3. Katmanlı Mimari
 
 Proje dört ana katmandan oluşmaktadır:
@@ -96,12 +98,18 @@ Başlıca ilişkiler:
 * Muayene ile reçete: bire bir
 * Muayene ile teşhis: ara tablo üzerinden çoka çok
 * Reçete ile ilaç: reçete içeriği üzerinden çoka çok
+* Bu projede bir randevu için yalnızca bir muayene kaydı oluşturulmasına
+karar verilmiştir. Bu karar, `Muayene.RandevuId` alanındaki unique
+indeks ve bire bir ilişkiyle veritabanı seviyesinde desteklenmektedir.
+Business katmanında da aynı randevuya ikinci bir muayene eklenmesi
+engellenmektedir.
 
 Silme işlemlerinde ilişkili verilerin yanlışlıkla silinmesini engellemek amacıyla önemli foreign key ilişkilerinde `DeleteBehavior.Restrict` kullanılmıştır.
 
 Doktor ve hasta randevularında zaman çakışmalarını engellemek için indeksler ve Business katmanında zaman aralığı kontrolü uygulanmıştır.
 
 Departman, doktor, hasta, teşhis ve ilaç gibi kayıtlar fiziksel olarak silinmek yerine uygun işlemlerde `AktifMi` alanı değiştirilerek pasifleştirilmektedir.
+
 
 ## 5. Dependency Injection ve Servis Yaşam Döngüleri
 
@@ -123,15 +131,9 @@ builder.Services.AddScoped(
 
 Memory Cache uygulama genelinde ortak bellek kullandığı için `AddMemoryCache` ile kaydedilmiştir.
 
-## 6. Cache Stratejisi
 
-Aktif departman listesi sık okunan ve seyrek değişen bir veri olduğu için bellekte önbelleğe alınmaktadır.
 
-Departman listesi belirli bir süre boyunca cache üzerinden döndürülür. Departman ekleme, güncelleme veya pasifleştirme işlemlerinden sonra eski verilerin gösterilmemesi için ilgili cache kaydı temizlenir.
-
-Hasta, randevu ve reçete gibi sık değişen ve kullanıcıya özel veriler cache içerisinde tutulmamaktadır.
-
-## 7. Kimlik Doğrulama ve Yetkilendirme
+## 6. Kimlik Doğrulama ve Yetkilendirme
 
 Sistemde JWT tabanlı kimlik doğrulama kullanılmaktadır.
 
@@ -164,7 +166,7 @@ Temel yetkiler:
 
 Sadece rol kontrolü yapılmamaktadır. Hasta ve doktor kullanıcıları için kaydın gerçekten giriş yapan kullanıcıya ait olup olmadığı da JWT içerisindeki kullanıcı kimliği üzerinden kontrol edilmektedir.
 
-## 8. Bilinen Eksikler ve Geliştirme Önerileri
+## 7. Bilinen Eksikler ve Geliştirme Önerileri
 
 Projenin ileride geliştirilebilecek bölümleri:
 
@@ -174,13 +176,12 @@ Projenin ileride geliştirilebilecek bölümleri:
 * Otomatik birim ve entegrasyon testleri
 * Docker Compose yapılandırması
 * Sağlık kontrolü endpoint’i
-* Web veya mobil kullanıcı arayüzü
 * Ayrıntılı denetim kayıtları
 * Üretim ortamı için merkezi loglama
 
 Mevcut test kullanıcıları geliştirme amacıyla hazırlanmıştır. Üretim ortamında kullanıcı ve personel oluşturma işlemleri güvenli bir yönetim süreci üzerinden gerçekleştirilmelidir.
 
-## 9. Projeyi Çalıştırma
+## 8. Projeyi Çalıştırma
 
 ### Gereksinimler
 
@@ -279,7 +280,7 @@ paylaşılmasına neden olabileceğinden güvenli değildir. `Transient`
 kullanılması ise aynı istek içerisinde gereksiz servis örnekleri
 oluşturabilir. Bu nedenle `Scoped` yaşam döngüsü tercih edilmiştir.
 
-## 6. Cache Stratejisi
+## 9. Cache Stratejisi
 
 Sistemde sık görüntülenen ve diğer verilere göre daha seyrek değişen
 aktif departman listesi `IMemoryCache` kullanılarak önbelleğe
