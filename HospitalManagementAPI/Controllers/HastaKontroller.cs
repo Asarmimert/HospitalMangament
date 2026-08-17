@@ -57,6 +57,31 @@ namespace HospitalManagementAPI.Controllers
 
             return Ok(cevap);
         }
+        [Authorize(Roles = nameof(KullaniciRolu.Hasta))]
+        [HttpGet("ben")]
+        public async Task<IActionResult> KendiProfilimiGetir()
+        {
+            var kullaniciHesabiId =
+                User.KullaniciIdGetir();
+
+            if (!kullaniciHesabiId.HasValue)
+            {
+                return Unauthorized();
+            }
+
+            var hasta =
+                await _hastaServisi
+                    .KullaniciHesabiIdIleGetirAsync(
+                        kullaniciHesabiId.Value);
+
+            if (hasta is null)
+            {
+                return NotFound(
+                    new { mesaj = "Hasta profili bulunamadı." });
+            }
+
+            return Ok(DtoyaDonustur(hasta));
+        }
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {

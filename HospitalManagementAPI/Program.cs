@@ -110,6 +110,9 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IHastaServisi,
     HastaServisi>();
+builder.Services.AddScoped<
+    ISekreterServisi,
+    SekreterServisi>();
 // Randevuya özel depo kaydı
 builder.Services.AddScoped<
     IRandevuDeposu,
@@ -212,15 +215,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Merkezi hata yönetimi
 app.UseMiddleware<HataYonetimiMiddleware>();
-
+// Merkezi hata yönetimi
 app.UseHttpsRedirection();
+
+// wwwroot içindeki index.html dosyasını başlangıç sayfası yapar.
+app.UseDefaultFiles();
+
+// wwwroot içindeki HTML, CSS ve JavaScript dosyalarını yayınlar.
+app.UseStaticFiles();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Bu satır her zaman en sonda olmalıdır
 app.Run();

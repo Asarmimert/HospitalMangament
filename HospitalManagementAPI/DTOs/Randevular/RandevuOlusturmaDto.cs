@@ -16,16 +16,12 @@ namespace HospitalManagementAPI.DTOs.Randevular
             ErrorMessage = "Geçerli bir hasta seçiniz.")]
         public int HastaId { get; set; }
 
-        [Range(
-            1,
-            int.MaxValue,
-            ErrorMessage = "Geçerli bir sekreter seçiniz.")]
-        public int OlusturanSekreterId { get; set; }
-
-        [Required(ErrorMessage = "Başlangıç zamanı zorunludur.")]
+        [Required(
+            ErrorMessage = "Başlangıç zamanı zorunludur.")]
         public DateTime BaslangicZamani { get; set; }
 
-        [Required(ErrorMessage = "Bitiş zamanı zorunludur.")]
+        [Required(
+            ErrorMessage = "Bitiş zamanı zorunludur.")]
         public DateTime BitisZamani { get; set; }
     }
 }

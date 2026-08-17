@@ -67,5 +67,17 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
                 .Include(x => x.KullaniciHesabi)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+        public async Task<Hasta?>
+    KullaniciHesabiIdIleGetirAsync(
+        int kullaniciHesabiId)
+        {
+            return await _context.Hastalar
+                .AsNoTracking()
+                .Include(x => x.KullaniciHesabi)
+                .FirstOrDefaultAsync(
+                    x => x.KullaniciHesabiId ==
+                         kullaniciHesabiId &&
+                         x.AktifMi);
+        }
     }
 }

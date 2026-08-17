@@ -11,7 +11,8 @@ namespace HospitalManagement.DataAccess.Depolar.Soyut
                 bool? aktifMi,
                 string? arama,
                  CancellationToken cancellationToken = default);
-
+        Task<Hasta?> KullaniciHesabiIdIleGetirAsync(
+    int kullaniciHesabiId);
         Task<Hasta?> IliskileriyleIdIleGetirAsync(int id);
     }
 }

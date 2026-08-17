@@ -1,11 +1,12 @@
-﻿using HospitalManagement.Business.Soyut;
+﻿using HospitalManagement.Business.Somut;
+using HospitalManagement.Business.Soyut;
 using HospitalManagement.Entity.Entities;
+using HospitalManagement.Entity.Enums;
 using HospitalManagementAPI.DTOs.Common;
 using HospitalManagementAPI.DTOs.Randevular;
-using Microsoft.AspNetCore.Mvc;
-using HospitalManagement.Entity.Enums;
-using Microsoft.AspNetCore.Authorization;
 using HospitalManagementAPI.Uzantilar;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementAPI.Controllers
 {
@@ -16,15 +17,17 @@ namespace HospitalManagementAPI.Controllers
         private readonly IRandevuServisi _randevuServisi;
         private readonly IHastaServisi _hastaServisi;
         private readonly IDoktorServisi _doktorServisi;
-
+        private readonly ISekreterServisi _sekreterServisi;
         public RandevuController(
      IRandevuServisi randevuServisi,
      IHastaServisi hastaServisi,
-     IDoktorServisi doktorServisi)
+     IDoktorServisi doktorServisi,
+     ISekreterServisi sekreterServisi)
         {
             _randevuServisi = randevuServisi;
             _hastaServisi = hastaServisi;
             _doktorServisi = doktorServisi;
+            _sekreterServisi = sekreterServisi;
         }
         [HttpGet]
         [ProducesResponseType(
@@ -159,19 +162,35 @@ namespace HospitalManagementAPI.Controllers
         public async Task<IActionResult> Create(
     RandevuOlusturmaDto dto)
         {
+            var kullaniciHesabiId =
+                User.KullaniciIdGetir();
+
+            if (!kullaniciHesabiId.HasValue)
+            {
+                return Unauthorized();
+            }
+
+            var sekreter =
+                await _sekreterServisi
+                    .KullaniciHesabiIdIleGetirAsync(
+                        kullaniciHesabiId.Value);
+
+            if (sekreter is null)
+            {
+                return Forbid();
+            }
+
             var yeniRandevu = new Randevu
             {
                 DoktorId = dto.DoktorId,
                 HastaId = dto.HastaId,
 
-                OlusturanSekreterId =
-                    dto.OlusturanSekreterId,
+                // Sekreter ID artık kullanıcıdan alınmıyor.
+                // Giriş yapan sekreterin profilinden bulunuyor.
+                OlusturanSekreterId = sekreter.Id,
 
-                BaslangicZamani =
-                    dto.BaslangicZamani,
-
-                BitisZamani =
-                    dto.BitisZamani
+                BaslangicZamani = dto.BaslangicZamani,
+                BitisZamani = dto.BitisZamani
             };
 
             var eklenenRandevu =

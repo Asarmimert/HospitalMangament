@@ -66,7 +66,6 @@ namespace HospitalManagement.Business.Somut
             return await _hastaDeposu
                 .IliskileriyleIdIleGetirAsync(id);
         }
-
         public async Task<Hasta?>
             KullaniciHesabiIdIleGetirAsync(
                 int kullaniciHesabiId)
@@ -76,14 +75,9 @@ namespace HospitalManagement.Business.Somut
                 return null;
             }
 
-            var hastalar =
-                await _genelHastaDeposu
-                    .KosulaGoreGetirAsync(
-                        x => x.KullaniciHesabiId ==
-                             kullaniciHesabiId &&
-                             x.AktifMi);
-
-            return hastalar.FirstOrDefault();
+            return await _hastaDeposu
+                .KullaniciHesabiIdIleGetirAsync(
+                    kullaniciHesabiId);
         }
 
         public async Task<Hasta> EkleAsync(Hasta hasta)
