@@ -2820,7 +2820,7 @@ async function receteleriGetir() {
         icerikAlani.innerHTML = `
             <div class="icerik-karti">
                 <div class="icerik-basligi">
-                    <div>B
+                    <div>
                         <h3>Reçeteler</h3>
                         <p>Reçete geçmişiniz</p>
                     </div>
@@ -3204,35 +3204,40 @@ async function receteIceriginiGetir(receteId) {
 
         if (!icerikler || icerikler.length === 0) {
             icerikAlani.innerHTML = `
-                <div class="icerik-karti">
-                    <div class="icerik-basligi">
-                        <div>
-                            <h3>Reçete ${receteId}</h3>
+        <div class="icerik-karti">
+            <div class="icerik-basligi">
+                <div>
+                    <h3>Reçete ${receteId}</h3>
 
-                            <p>
-                                Bu reçeteye henüz ilaç
-                                eklenmemiş.
-                            </p>
-                        </div>
-
-                        <div class="baslik-butonlari">
-    <button
-        type="button"
-        class="yenile-butonu"
-        onclick="receteIcerikOlusturmaFormunuGoster(${receteId})">
-        İlaç Ekle
-    </button>
-
-    <button
-        type="button"
-        class="yenile-butonu"
-        onclick="receteleriGetir()">
-        Geri Dön
-    </button>
-</div>
-                    </div>
+                    <p>
+                        Bu reçeteye henüz ilaç
+                        eklenmemiş.
+                    </p>
                 </div>
-            `;
+
+                <div class="baslik-butonlari">
+                    ${rol === "Doktor"
+                    ? `
+                            <button
+                                type="button"
+                                class="yenile-butonu"
+                                onclick="receteIcerikOlusturmaFormunuGoster(${receteId})">
+                                İlaç Ekle
+                            </button>
+                        `
+                    : ""
+                }
+
+                    <button
+                        type="button"
+                        class="yenile-butonu"
+                        onclick="receteleriGetir()">
+                        Geri Dön
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
 
             return;
         }
@@ -3279,12 +3284,17 @@ async function receteIceriginiGetir(receteId) {
                     </div>
 
                     <div class="baslik-butonlari">
-    <button
-        type="button"
-        class="yenile-butonu"
-        onclick="receteIcerikOlusturmaFormunuGoster(${receteId})">
-        İlaç Ekle
-    </button>
+   ${rol === "Doktor"
+                ? `
+        <button
+            type="button"
+            class="yenile-butonu"
+            onclick="receteIcerikOlusturmaFormunuGoster(${receteId})">
+            İlaç Ekle
+        </button>
+    `
+                : ""
+}
 
     <button
         type="button"
