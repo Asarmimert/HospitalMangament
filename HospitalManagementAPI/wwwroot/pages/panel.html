@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Yönetim Paneli</title>
+
+    <link rel="stylesheet" href="/css/panel.css?v=4"></head>
+
+<body>
+    <div class="panel-sayfasi">
+
+        <aside class="kenar-menu">
+            <div class="panel-logo">
+                <span>+</span>
+
+                <div>
+                    <strong>Hastane</strong>
+                    <small>Yönetim Sistemi</small>
+                </div>
+            </div>
+
+            <div class="kullanici-karti">
+                <div class="kullanici-simgesi">
+                    K
+                </div>
+
+                <div>
+                    <strong id="kullaniciEposta">
+                        Kullanıcı
+                    </strong>
+
+                    <small id="kullaniciRol">
+                        Rol
+                    </small>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <button type="button"
+                        class="menu-ogesi aktif"
+                        data-sayfa="anasayfa">
+                    Ana Sayfa
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="randevular">
+                    Randevular
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="departmanlar"
+                        data-roller="Sekreter">
+                    Departmanlar
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="doktorlar"
+                        data-roller="Sekreter,Hasta">
+                    Doktorlar
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="hastalar"
+                        data-roller="Sekreter,Doktor">
+                    Hastalar
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="muayeneler"
+                        data-roller="Doktor,Hasta">
+                    Muayeneler
+                </button>
+
+                <button type="button"
+                        class="menu-ogesi"
+                        data-sayfa="receteler"
+                        data-roller="Doktor,Hasta">
+                    Reçeteler
+                </button>
+            </nav>
+
+            <button type="button"
+                    id="cikisButonu"
+                    class="cikis-butonu">
+                Çıkış Yap
+            </button>
+        </aside>
+
+        <main class="ana-icerik">
+            <header class="ust-menu">
+                <div>
+                    <p>Hastane Yönetim Sistemi</p>
+
+                    <h1 id="sayfaBasligi">
+                        Ana Sayfa
+                    </h1>
+                </div>
+
+                <div id="tarihAlani"></div>
+            </header>
+
+            <section id="icerikAlani">
+                <div class="hosgeldin-karti">
+                    <div>
+                        <p>Hoş geldiniz</p>
+
+                        <h2 id="hosgeldinMetni">
+                            Hastane Yönetim Paneli
+                        </h2>
+
+                        <span>
+                            İşlemlerinizi sol taraftaki menüden
+                            gerçekleştirebilirsiniz.
+                        </span>
+                    </div>
+
+                    <div class="arti-simgesi">
+                        +
+                    </div>
+                </div>
+
+                <div class="bilgi-kartlari">
+                    <article class="bilgi-karti">
+                        <span>Rolünüz</span>
+                        <strong id="rolBilgisi">-</strong>
+                    </article>
+
+                    <article class="bilgi-karti">
+                        <span>Hesap durumu</span>
+                        <strong class="aktif-yazi">Aktif</strong>
+                    </article>
+
+                    <article class="bilgi-karti">
+                        <span>Sistem durumu</span>
+                        <strong class="aktif-yazi">Çevrim içi</strong>
+                    </article>
+                </div>
+
+                <div class="icerik-karti">
+                    <h3>Hızlı erişim</h3>
+
+                    <p>
+                        Görüntülemek istediğiniz işlemi
+                        sol menüden seçiniz.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script src="/js/panel.js?v=7"></script></body>
+</html>
