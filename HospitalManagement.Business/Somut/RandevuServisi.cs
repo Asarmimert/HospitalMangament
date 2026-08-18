@@ -241,31 +241,65 @@ namespace HospitalManagement.Business.Somut
                     "Geçerli bir hasta seçilmelidir.");
             }
 
-            if (randevu.OlusturanSekreterId < 1)
-            {
-                throw new ArgumentException(
-                    "Geçerli bir sekreter seçilmelidir.");
-            }
-
-            if (randevu.BaslangicZamani == default ||
-                randevu.BitisZamani == default)
-            {
-                throw new ArgumentException(
-                    "Randevu başlangıç ve bitiş zamanı zorunludur.");
-            }
+            //if (randevu.OlusturanSekreterId < 1)
+            //{
+            //    throw new ArgumentException(
+            //        "Geçerli bir sekreter seçilmelidir.");
+            //}
 
             if (randevu.BitisZamani <=
-                randevu.BaslangicZamani)
+     randevu.BaslangicZamani)
             {
                 throw new ArgumentException(
                     "Randevu bitiş zamanı başlangıç zamanından sonra olmalıdır.");
             }
+
+            // Gelen UTC saatini İstanbul saatine çeviriyoruz.
+            var yerelBaslangic =
+                IstanbulSaatineCevir(
+                    randevu.BaslangicZamani);
+
+            var yerelBitis =
+                IstanbulSaatineCevir(
+                    randevu.BitisZamani);
+
+            // Randevu aynı gün içinde olmalı.
+            // Başlangıç 17:00 olamaz, bitiş ise en fazla 17:00 olabilir.
+            if (yerelBaslangic.Date != yerelBitis.Date ||
+     yerelBaslangic.TimeOfDay <
+         TimeSpan.FromHours(8) ||
+     yerelBaslangic.TimeOfDay >=
+         TimeSpan.FromHours(17) ||
+     yerelBitis.TimeOfDay >
+         TimeSpan.FromHours(17))
+            {
+                throw new ArgumentException(
+                       "Randevu saatleri 08:00 ile 17:00 arasında olmalıdır.");
+            }
+        }
+
+        private static DateTime IstanbulSaatineCevir(
+            DateTime zaman)
+        {
+            // Zaman zaten yerel biçimde geldiyse değiştirme.
+            if (zaman.Kind == DateTimeKind.Unspecified)
+            {
+                return zaman;
+            }
+
+            var istanbulSaatDilimi =
+                TimeZoneInfo.FindSystemTimeZoneById(
+                    "Europe/Istanbul");
+
+            return TimeZoneInfo.ConvertTimeFromUtc(
+                zaman.ToUniversalTime(),
+                istanbulSaatDilimi);
         }
 
         private async Task IliskiliKayitlariDogrulaAsync(
             int doktorId,
             int hastaId,
-            int sekreterId)
+            int? sekreterId)
         {
             var doktor =
                 await _doktorDeposu.IdIleGetirAsync(doktorId);
@@ -285,14 +319,17 @@ namespace HospitalManagement.Business.Somut
                     "Aktif hasta bulunamadı.");
             }
 
-            var sekreter =
-                await _sekreterDeposu.IdIleGetirAsync(
-                    sekreterId);
-
-            if (sekreter is null || !sekreter.AktifMi)
+            if (sekreterId.HasValue)
             {
-                throw new InvalidOperationException(
-                    "Aktif sekreter bulunamadı.");
+                var sekreter =
+                    await _sekreterDeposu.IdIleGetirAsync(
+                        sekreterId.Value);
+
+                if (sekreter is null || !sekreter.AktifMi)
+                {
+                    throw new InvalidOperationException(
+                        "Aktif sekreter bulunamadı.");
+                }
             }
         }
     }

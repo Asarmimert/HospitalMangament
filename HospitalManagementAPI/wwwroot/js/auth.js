@@ -97,17 +97,60 @@ girisFormu.addEventListener("submit", async (event) => {
 });
 
 // Kayıt işlemi
+// Kayıt işlemi
 kayitFormu.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const eposta =
-        document.getElementById("kayitEposta").value.trim();
+        const ad =
+            document
+                .getElementById("kayitAd")
+                .value
+                .trim();
 
-    const parola =
-        document.getElementById("kayitParola").value;
+        const soyad =
+            document
+                .getElementById("kayitSoyad")
+                .value
+                .trim();
 
-    const parolaTekrar =
-        document.getElementById("parolaTekrar").value;
+        const kimlikNumarasi =
+            document
+                .getElementById("kayitKimlikNumarasi")
+                .value
+                .trim();
+
+        const dogumTarihi =
+            document
+                .getElementById("kayitDogumTarihi")
+                .value;
+
+        const telefonNumarasi =
+            document
+                .getElementById("kayitTelefonNumarasi")
+                .value
+                .trim();
+
+        const adres =
+            document
+                .getElementById("kayitAdres")
+                .value
+                .trim();
+
+        const eposta =
+            document
+                .getElementById("kayitEposta")
+                .value
+                .trim();
+
+        const parola =
+            document
+                .getElementById("kayitParola")
+                .value;
+
+        const parolaTekrar =
+            document
+                .getElementById("parolaTekrar")
+                .value;
 
     if (parola !== parolaTekrar) {
         mesajGoster(
@@ -136,7 +179,12 @@ kayitFormu.addEventListener("submit", async (event) => {
 
             body: JSON.stringify({
                 eposta: eposta,
-                parola: parola
+                parola: parola, ad: ad,
+                soyad: soyad,
+                kimlikNumarasi: kimlikNumarasi,
+                dogumTarihi: dogumTarihi,
+                telefonNumarasi: telefonNumarasi,
+                adres: adres || null
             })
         });
 

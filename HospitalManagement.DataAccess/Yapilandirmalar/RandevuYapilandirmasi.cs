@@ -38,6 +38,8 @@ namespace HospitalManagement.DataAccess.Yapilandirmalar
 
             builder.Property(x => x.GuncellenmeTarihi)
                 .IsRequired(false);
+            builder.Property(x => x.OlusturanSekreterId)
+            .IsRequired(false);
 
             builder.HasIndex(x => new
             {

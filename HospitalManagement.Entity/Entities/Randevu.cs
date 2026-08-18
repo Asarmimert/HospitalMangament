@@ -17,9 +17,9 @@ namespace HospitalManagement.Entity.Entities
 
         public Hasta Hasta { get; set; } = null!;
 
-        public int OlusturanSekreterId { get; set; }
+        public int? OlusturanSekreterId { get; set; }
 
-        public Sekreter OlusturanSekreter { get; set; } = null!;
+        public Sekreter? OlusturanSekreter { get; set; }
 
         public DateTime BaslangicZamani { get; set; }
 

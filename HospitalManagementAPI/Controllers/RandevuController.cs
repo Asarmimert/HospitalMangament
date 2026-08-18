@@ -150,7 +150,9 @@ namespace HospitalManagementAPI.Controllers
 
             return Ok(DtoyaDonustur(randevu));
         }
-        [Authorize(Roles = nameof(KullaniciRolu.Sekreter))]
+        [Authorize(
+    Roles = nameof(KullaniciRolu.Sekreter) + "," +
+            nameof(KullaniciRolu.Hasta))]
         [HttpPost]
         [ProducesResponseType(
     typeof(RandevuYanitDto),
@@ -170,12 +172,55 @@ namespace HospitalManagementAPI.Controllers
                 return Unauthorized();
             }
 
-            var sekreter =
-                await _sekreterServisi
-                    .KullaniciHesabiIdIleGetirAsync(
-                        kullaniciHesabiId.Value);
+            // Nullable HastaId değerini normal int değerine çeviriyoruz.
+            var hastaId = dto.HastaId ?? 0;
 
-            if (sekreter is null)
+            int? olusturanSekreterId = null;
+
+            // Giriş yapan kullanıcı hastaysa kendi hasta profilini bul.
+            if (User.IsInRole(nameof(KullaniciRolu.Hasta)))
+            {
+                var hasta =
+                    await _hastaServisi
+                        .KullaniciHesabiIdIleGetirAsync(
+                            kullaniciHesabiId.Value);
+
+                if (hasta is null)
+                {
+                    return Forbid();
+                }
+
+                // Hasta yalnızca kendi adına randevu alabilir.
+                hastaId = hasta.Id;
+
+                // Hasta oluşturduğu için sekreter bulunmaz.
+                olusturanSekreterId = null;
+            }
+            // Giriş yapan kullanıcı sekreterse sekreter profilini bul.
+            else if (User.IsInRole(nameof(KullaniciRolu.Sekreter)))
+            {
+                var sekreter =
+                    await _sekreterServisi
+                        .KullaniciHesabiIdIleGetirAsync(
+                            kullaniciHesabiId.Value);
+
+                if (sekreter is null)
+                {
+                    return Forbid();
+                }
+
+                if (hastaId < 1)
+                {
+                    return BadRequest(
+                        new
+                        {
+                            mesaj = "Geçerli bir hasta seçiniz."
+                        });
+                }
+
+                olusturanSekreterId = sekreter.Id;
+            }
+            else
             {
                 return Forbid();
             }
@@ -183,14 +228,16 @@ namespace HospitalManagementAPI.Controllers
             var yeniRandevu = new Randevu
             {
                 DoktorId = dto.DoktorId,
-                HastaId = dto.HastaId,
+                HastaId = hastaId,
 
-                // Sekreter ID artık kullanıcıdan alınmıyor.
-                // Giriş yapan sekreterin profilinden bulunuyor.
-                OlusturanSekreterId = sekreter.Id,
+                OlusturanSekreterId =
+                    olusturanSekreterId,
 
-                BaslangicZamani = dto.BaslangicZamani,
-                BitisZamani = dto.BitisZamani
+                BaslangicZamani =
+                    dto.BaslangicZamani,
+
+                BitisZamani =
+                    dto.BitisZamani
             };
 
             var eklenenRandevu =
@@ -207,7 +254,8 @@ namespace HospitalManagementAPI.Controllers
                     "Eklenen randevu bilgileri alınamadı.");
             }
 
-            var cevap = DtoyaDonustur(iliskiliRandevu);
+            var cevap =
+                DtoyaDonustur(iliskiliRandevu);
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -319,6 +367,8 @@ namespace HospitalManagementAPI.Controllers
                 DoktorAdiSoyadi =
                     $"{randevu.Doktor.DoktorAd} " +
                     $"{randevu.Doktor.DoktorSoyad}",
+                DoktorUzmanlikAlani =
+    randevu.Doktor.UzmanlikAlani,
 
                 HastaId = randevu.HastaId,
 
@@ -330,8 +380,10 @@ namespace HospitalManagementAPI.Controllers
                     randevu.OlusturanSekreterId,
 
                 OlusturanSekreterAdiSoyadi =
-                    $"{randevu.OlusturanSekreter.Ad} " +
-                    $"{randevu.OlusturanSekreter.Soyad}",
+    randevu.OlusturanSekreter is null
+        ? null
+        : $"{randevu.OlusturanSekreter.Ad} " +
+          $"{randevu.OlusturanSekreter.Soyad}",
 
                 BaslangicZamani =
                     randevu.BaslangicZamani,

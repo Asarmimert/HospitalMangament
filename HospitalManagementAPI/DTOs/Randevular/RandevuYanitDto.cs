@@ -15,11 +15,11 @@ namespace HospitalManagementAPI.DTOs.Randevular
 
         public string HastaAdiSoyadi { get; set; } =
             string.Empty;
+        public string? DoktorUzmanlikAlani { get; set; }
+        public int? OlusturanSekreterId { get; set; }
 
-        public int OlusturanSekreterId { get; set; }
-
-        public string OlusturanSekreterAdiSoyadi { get; set; } =
-            string.Empty;
+        public string? OlusturanSekreterAdiSoyadi { get; set; } 
+           
 
         public DateTime BaslangicZamani { get; set; }
 

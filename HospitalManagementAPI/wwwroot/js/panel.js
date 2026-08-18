@@ -586,13 +586,31 @@ async function randevulariGetir() {
 
         const randevular =
             veri.kayitlar ?? veri;
-
         if (!randevular || randevular.length === 0) {
+            const randevuAlabilirMi =
+                ["sekreter", "hasta"].includes(
+                    (rol ?? "").trim().toLowerCase()
+                );
+
             icerikAlani.innerHTML = `
-                <div class="bos-kayit">
-                    Henüz randevunuz bulunmuyor.
-                </div>
-            `;
+        <div class="bos-kayit">
+            Henüz randevunuz bulunmuyor.
+
+            ${randevuAlabilirMi
+                    ? `
+                    <br><br>
+
+                    <button
+                        type="button"
+                        class="yenile-butonu"
+                        onclick="randevuOlusturmaFormunuGoster()">
+                        Yeni Randevu Al
+                    </button>
+                `
+                    : ""
+                }
+        </div>
+    `;
 
             return;
         }
@@ -604,8 +622,14 @@ async function randevulariGetir() {
                         <td>
                             ${htmlGuvenli(
                     randevu.doktorAdiSoyadi
-                )}
+                    )}
                         </td>
+                        <td>
+    ${htmlGuvenli(
+                        randevu.doktorUzmanlikAlani ||
+                        "Belirtilmemiş"
+    )}
+</td>
 
                         <td>
                             ${tarihYaz(
@@ -710,16 +734,19 @@ async function randevulariGetir() {
                     </div>
 
                     <div class="baslik-butonlari">
-${(rol ?? "").trim().toLowerCase() === "sekreter"                ? `
-            <button
-                type="button"
-                class="yenile-butonu"
-                onclick="randevuOlusturmaFormunuGoster()">
-                Yeni Randevu
-            </button>
-        `
-            : ""
-    }
+${["sekreter", "hasta"].includes(
+    (rol ?? "").trim().toLowerCase()
+)
+                ? `
+        <button
+            type="button"
+            class="yenile-butonu"
+            onclick="randevuOlusturmaFormunuGoster()">
+            Yeni Randevu
+        </button>
+    `
+                : ""
+}
     <button
     type="button"
     class="yenile-butonu"
@@ -739,11 +766,12 @@ ${(rol ?? "").trim().toLowerCase() === "sekreter"                ? `
                     <table class="veri-tablosu">
                         <thead>
                             <tr>
-                                <th>Doktor</th>
-                                <th>Tarih</th>
-                                <th>Başlangıç</th>
-                                <th>Bitiş</th>
-                                <th>Durum</th>
+                               <th>Doktor</th>
+<th>Doktorun Dalı</th>
+<th>Tarih</th>
+<th>Başlangıç</th>
+<th>Bitiş</th>
+<th>Durum</th>
                               ${["sekreter", "doktor"].includes(
                                   (rol ?? "").trim().toLowerCase()
                               )
@@ -778,6 +806,9 @@ async function randevuOlusturmaFormunuGoster() {
     `;
 
     try {
+        const hastaMi =
+            (rol ?? "").trim().toLowerCase() === "hasta";
+
         const [doktorCevabi, hastaCevabi] =
             await Promise.all([
                 apiIstegi(
@@ -787,21 +818,22 @@ async function randevuOlusturmaFormunuGoster() {
                     "&AktifMi=true"
                 ),
 
-                apiIstegi(
-                    "/api/Hasta" +
-                    "?SayfaNo=1" +
-                    "&SayfaBoyutu=100" +
-                    "&AktifMi=true"
-                )
+                hastaMi
+                    ? Promise.resolve(null)
+                    : apiIstegi(
+                        "/api/Hasta" +
+                        "?SayfaNo=1" +
+                        "&SayfaBoyutu=100" +
+                        "&AktifMi=true"
+                    )
             ]);
-
         if (!doktorCevabi.ok) {
             throw new Error(
                 "Doktor listesi alınamadı."
             );
         }
 
-        if (!hastaCevabi.ok) {
+        if (hastaCevabi && !hastaCevabi.ok) {
             throw new Error(
                 "Hasta listesi alınamadı."
             );
@@ -809,9 +841,10 @@ async function randevuOlusturmaFormunuGoster() {
 
         const doktorVerisi =
             await doktorCevabi.json();
-
         const hastaVerisi =
-            await hastaCevabi.json();
+            hastaCevabi
+                ? await hastaCevabi.json()
+                : [];
 
         const doktorlar =
             doktorVerisi.kayitlar ?? doktorVerisi;
@@ -821,14 +854,19 @@ async function randevuOlusturmaFormunuGoster() {
 
         const doktorSecenekleri = doktorlar
             .map((doktor) => {
+                const uzmanlik =
+                    doktor.uzmanlikAlani ||
+                    "Dal belirtilmemiş";
+
                 return `
-                    <option value="${doktor.id}">
-                        ${htmlGuvenli(
+            <option value="${doktor.id}">
+                ${htmlGuvenli(
                     doktor.doktorAd + " " +
-                    doktor.doktorSoyad
+                    doktor.doktorSoyad + " - " +
+                    uzmanlik
                 )}
-                    </option>
-                `;
+            </option>
+        `;
             })
             .join("");
 
@@ -887,22 +925,27 @@ async function randevuOlusturmaFormunuGoster() {
                             </select>
                         </div>
 
-                        <div class="form-grubu">
-                            <label for="randevuHastaId">
-                                Hasta
-                            </label>
+                       ${hastaMi
+                ? ""
+                : `
+        <div class="form-grubu">
+            <label for="randevuHastaId">
+                Hasta
+            </label>
 
-                            <select
-                                id="randevuHastaId"
-                                required>
+            <select
+                id="randevuHastaId"
+                required>
 
-                                <option value="">
-                                    Hasta seçiniz
-                                </option>
+                <option value="">
+                    Hasta seçiniz
+                </option>
 
-                                ${hastaSecenekleri}
-                            </select>
-                        </div>
+                ${hastaSecenekleri}
+            </select>
+        </div>
+    `
+}
 
                         <div class="form-grubu">
                             <label for="randevuBaslangic">
@@ -910,9 +953,10 @@ async function randevuOlusturmaFormunuGoster() {
                             </label>
 
                             <input
-                                type="datetime-local"
-                                id="randevuBaslangic"
-                                required>
+    type="datetime-local"
+    id="randevuBaslangic"
+    step="1800"
+    required>
                         </div>
 
                         <div class="form-grubu">
@@ -920,10 +964,11 @@ async function randevuOlusturmaFormunuGoster() {
                                 Bitiş zamanı
                             </label>
 
-                            <input
-                                type="datetime-local"
-                                id="randevuBitis"
-                                required>
+                           <input
+    type="datetime-local"
+    id="randevuBitis"
+    step="1800"
+    required>
                         </div>
                     </div>
 
@@ -948,7 +993,45 @@ async function randevuOlusturmaFormunuGoster() {
             .addEventListener(
                 "submit",
                 randevuOlustur
+        );
+        const baslangicAlani =
+            document.getElementById(
+                "randevuBaslangic"
             );
+
+        const bitisAlani =
+            document.getElementById(
+                "randevuBitis"
+            );
+
+        function saatSiniriniAyarla() {
+            const secilenTarih =
+                baslangicAlani.value.slice(0, 10);
+
+            if (!secilenTarih) {
+                return;
+            }
+
+            // Randevu başlangıcı en erken 08:00 olabilir.
+            baslangicAlani.min =
+                `${secilenTarih}T08:00`;
+
+            // Başlangıç 17:00 olamaz.
+            baslangicAlani.max =
+                `${secilenTarih}T16:59`;
+
+            bitisAlani.min =
+                baslangicAlani.value;
+
+            // Randevu en geç 17:00'de bitebilir.
+            bitisAlani.max =
+                `${secilenTarih}T17:00`;
+        }
+
+        baslangicAlani.addEventListener(
+            "change",
+            saatSiniriniAyarla
+        );
     }
     catch (hata) {
         icerikAlani.innerHTML = `
@@ -969,11 +1052,13 @@ async function randevuOlustur(event) {
             .value
     );
 
-    const hastaId = Number(
-        document
-            .getElementById("randevuHastaId")
-            .value
-    );
+    const hastaAlani =
+        document.getElementById("randevuHastaId");
+
+    const hastaId =
+        hastaAlani
+            ? Number(hastaAlani.value)
+            : null;
 
     const baslangicDegeri =
         document
@@ -1000,6 +1085,34 @@ async function randevuOlustur(event) {
         mesajAlani.textContent =
             "Bitiş zamanı başlangıç zamanından " +
             "sonra olmalıdır.";
+
+        mesajAlani.className = "mesaj hata";
+        return;
+    }
+    const farkliGunMu =
+        baslangicZamani.toDateString() !==
+        bitisZamani.toDateString();
+
+    const baslangicSekizdenOnceMi =
+        baslangicZamani.getHours() < 8;
+
+    const baslangicOnYedidenSonraMi =
+        baslangicZamani.getHours() >= 17;
+
+    const bitisOnYedidenSonraMi =
+        bitisZamani.getHours() > 17 ||
+        (
+            bitisZamani.getHours() === 17 &&
+            bitisZamani.getMinutes() > 0
+        );
+    if (
+        farkliGunMu ||
+        baslangicSekizdenOnceMi ||
+        baslangicOnYedidenSonraMi ||
+        bitisOnYedidenSonraMi
+    ) {
+        mesajAlani.textContent =
+            "Randevu saatleri 08:00 ile 17:00 arasında olmalıdır.";
 
         mesajAlani.className = "mesaj hata";
         return;

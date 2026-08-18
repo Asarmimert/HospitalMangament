@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
-
     <title>Hastane Yönetim Sistemi</title>
-
+    <link rel="icon" type="image/x-icon" href="/588hospital_100778.ico">
     <link rel="stylesheet" href="/css/site.css">
 </head>
 
@@ -92,6 +91,79 @@
                     <p class="form-aciklamasi">
                         Sisteme hasta olarak kayıt olabilirsiniz.
                     </p>
+                    <div class="form-grubu">
+                        <label for="kayitAd">
+                            Ad
+                        </label>
+
+                        <input type="text"
+                               id="kayitAd"
+                               maxlength="25"
+                               placeholder="Adınızı giriniz"
+                               required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="kayitSoyad">
+                            Soyad
+                        </label>
+
+                        <input type="text"
+                               id="kayitSoyad"
+                               maxlength="20"
+                               placeholder="Soyadınızı giriniz"
+                               required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="kayitKimlikNumarasi">
+                            T.C. Kimlik Numarası
+                        </label>
+
+                        <input type="text"
+                               id="kayitKimlikNumarasi"
+                               minlength="11"
+                               maxlength="11"
+                               inputmode="numeric"
+                               pattern="[0-9]{11}"
+                               placeholder="11 haneli T.C. kimlik numarası"
+                               required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="kayitDogumTarihi">
+                            Doğum Tarihi
+                        </label>
+
+                        <input type="date"
+                               id="kayitDogumTarihi"
+                               required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="kayitTelefonNumarasi">
+                            Telefon Numarası
+                        </label>
+
+                        <input type="tel"
+                               id="kayitTelefonNumarasi"
+                               minlength="11"
+                               maxlength="11"
+                               inputmode="numeric"
+                               pattern="[0-9]{11}"
+                               placeholder="05XXXXXXXXX"
+                               required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="kayitAdres">
+                            Adres
+                        </label>
+
+                        <textarea id="kayitAdres"
+                                  maxlength="300"
+                                  placeholder="Adresinizi giriniz"></textarea>
+                    </div>
 
                     <div class="form-grubu">
                         <label for="kayitEposta">
@@ -143,6 +215,6 @@
 
     </main>
 
-    <script src="/js/auth.js"></script>
+    <script src="/js/auth.js?v=2"></script>
 </body>
 </html>

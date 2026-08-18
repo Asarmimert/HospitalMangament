@@ -22,14 +22,18 @@ namespace HospitalManagementAPI.Controllers
 
         private readonly IJwtTokenServisi
             _jwtTokenServisi;
-
+        private readonly IHastaServisi
+    _hastaServisi;
         public YetkilendirmeController(
-            IKullaniciHesabiServisi kullaniciHesabiServisi,
-            IPasswordHasher<KullaniciHesabi> parolaHasher,
-            IJwtTokenServisi jwtTokenServisi)
+      IKullaniciHesabiServisi kullaniciHesabiServisi,
+      IHastaServisi hastaServisi,
+      IPasswordHasher<KullaniciHesabi> parolaHasher,
+      IJwtTokenServisi jwtTokenServisi)
         {
             _kullaniciHesabiServisi =
-                kullaniciHesabiServisi;
+       kullaniciHesabiServisi;
+
+            _hastaServisi = hastaServisi;
             _parolaHasher = parolaHasher;
             _jwtTokenServisi = jwtTokenServisi;
         }
@@ -52,7 +56,19 @@ namespace HospitalManagementAPI.Controllers
 
             await _kullaniciHesabiServisi
                 .EkleAsync(kullanici);
+            var hasta = new Hasta
+            {
+                KullaniciHesabiId = kullanici.Id,
+                Ad = dto.Ad,
+                Soyad = dto.Soyad,
+                KimlikNumarasi = dto.KimlikNumarasi,
+                DogumTarihi = dto.DogumTarihi,
+                TelefonNumarasi = dto.TelefonNumarasi,
+                Adres = dto.Adres,
+                AktifMi = true
+            };
 
+            await _hastaServisi.EkleAsync(hasta);
             return Created(
                 string.Empty,
                 new
