@@ -23,5 +23,8 @@
         public DateTime OlusturulmaTarihi { get; set; }
 
         public DateTime? GuncellenmeTarihi { get; set; }
+
+        public string HastaKimlikNumarasi { get; set; } =
+    string.Empty;
     }
 }

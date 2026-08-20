@@ -223,23 +223,32 @@ namespace HospitalManagementAPI.Controllers
             return NoContent();
         }
         private static ReceteYanitDto DtoyaDonustur(
-            Recete recete)
+    Recete recete)
         {
             return new ReceteYanitDto
             {
                 Id = recete.Id,
                 MuayeneId = recete.MuayeneId,
                 HastaId = recete.HastaId,
+
                 HastaAdiSoyadi =
                     $"{recete.Hasta.Ad} {recete.Hasta.Soyad}",
+
+                HastaKimlikNumarasi =
+                    recete.Hasta.KimlikNumarasi,
+
                 DoktorId = recete.DoktorId,
+
                 DoktorAdiSoyadi =
                     $"{recete.Doktor.DoktorAd} " +
                     $"{recete.Doktor.DoktorSoyad}",
+
                 ReceteTarihi = recete.ReceteTarihi,
                 GenelNotlar = recete.GenelNotlar,
+
                 OlusturulmaTarihi =
                     recete.OlusturulmaTarihi,
+
                 GuncellenmeTarihi =
                     recete.GuncellenmeTarihi
             };

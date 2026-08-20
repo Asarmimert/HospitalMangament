@@ -11,5 +11,7 @@ namespace HospitalManagement.Business.Soyut
 
         Task<MuayeneTeshisi> EkleAsync(
             MuayeneTeshisi muayeneTeshisi);
+        Task<bool> SilAsync(int id);
+
     }
 }

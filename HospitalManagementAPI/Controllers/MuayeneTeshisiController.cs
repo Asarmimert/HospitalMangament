@@ -170,7 +170,54 @@ namespace HospitalManagementAPI.Controllers
                 new { id = yeniKayit.Id },
                 DtoyaDonustur(detayliKayit!));
         }
+        [Authorize(Roles = nameof(KullaniciRolu.Doktor))]
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var kayit =
+                await _muayeneTeshisiServisi
+                    .IdIleGetirAsync(id);
 
+            if (kayit is null)
+            {
+                return NotFound(
+                    "Muayene teşhis kaydı bulunamadı.");
+            }
+
+            var muayene =
+                await _muayeneServisi.IdIleGetirAsync(
+                    kayit.MuayeneId);
+
+            if (muayene is null)
+            {
+                return NotFound("Muayene bulunamadı.");
+            }
+
+            var kullaniciHesabiId =
+                User.KullaniciIdGetir();
+
+            if (!kullaniciHesabiId.HasValue)
+            {
+                return Unauthorized();
+            }
+
+            if (muayene.Randevu.Doktor.KullaniciHesabiId !=
+                kullaniciHesabiId.Value)
+            {
+                return Forbid();
+            }
+
+            var silindiMi =
+                await _muayeneTeshisiServisi.SilAsync(id);
+
+            if (!silindiMi)
+            {
+                return NotFound(
+                    "Muayene teşhis kaydı bulunamadı.");
+            }
+
+            return NoContent();
+        }
         private static MuayeneTeshisiYanitDto DtoyaDonustur(
             MuayeneTeshisi kayit)
         {

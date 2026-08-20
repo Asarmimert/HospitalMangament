@@ -127,5 +127,30 @@ namespace HospitalManagement.Business.Somut
 
             return muayeneTeshisi;
         }
+        public async Task<bool> SilAsync(int id)
+        {
+            if (id < 1)
+            {
+                return false;
+            }
+
+            var mevcutKayit =
+                await _genelMuayeneTeshisiDeposu
+                    .IdIleGetirAsync(id);
+
+            if (mevcutKayit is null)
+            {
+                return false;
+            }
+
+            _genelMuayeneTeshisiDeposu
+                .Sil(mevcutKayit);
+
+            await _genelMuayeneTeshisiDeposu
+                .KaydetAsync();
+
+            return true;
+        }
     }
+
 }

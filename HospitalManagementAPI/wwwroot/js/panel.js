@@ -1079,7 +1079,12 @@ async function doktorSil(doktorId) {
         alert(hata.message);
     }
 }
+let hastaAramaZamanlayici;
+
 async function hastalariGetir(aramaMetni = "") {
+    aramaMetni =
+        String(aramaMetni ?? "").trim();
+
     icerikAlani.innerHTML = `
         <div class="yukleniyor">
             Hastalar yükleniyor...
@@ -1087,16 +1092,20 @@ async function hastalariGetir(aramaMetni = "") {
     `;
 
     try {
-        const adres =
+        let adres =
             "/api/Hasta" +
             "?SayfaNo=1" +
             "&SayfaBoyutu=100" +
-            "&AktifMi=true" +
-            (aramaMetni
-                ? `&Arama=${encodeURIComponent(aramaMetni)}`
-                : "");
+            "&AktifMi=true";
 
-        const cevap = await apiIstegi(adres);
+        if (aramaMetni) {
+            adres +=
+                "&Arama=" +
+                encodeURIComponent(aramaMetni);
+        }
+
+        const cevap =
+            await apiIstegi(adres);
 
         if (!cevap.ok) {
             if (cevap.status === 403) {
@@ -1106,61 +1115,72 @@ async function hastalariGetir(aramaMetni = "") {
             }
 
             throw new Error(
-                `Hastalar alınamadı. Hata kodu: ${cevap.status}`
+                "Hastalar alınamadı. Hata kodu: " +
+                cevap.status
             );
         }
 
         const veri = await cevap.json();
-        const hastalar = veri.kayitlar ?? veri;
+
+        const hastalar =
+            veri.kayitlar ?? veri;
 
         const sekreterMi =
-            (rol ?? "").trim().toLowerCase() === "sekreter";
+            (rol ?? "")
+                .trim()
+                .toLowerCase() === "sekreter";
 
         const aramaKutusu = `
-    <form id="hastaAramaFormu" class="randevu-formu">
-        <div class="form-grid">
-            <div class="form-grubu">
-                <label for="hastaAramaMetni">
-                    TC Kimlik No ile Ara
-                </label>
+            <form
+                id="hastaAramaFormu"
+                class="hasta-arama-formu">
 
-                <input
-                    type="text"
-                    id="hastaAramaMetni"
-                    inputmode="numeric"
-                    maxlength="11"
-                    placeholder="12345678901"
-                    value="${htmlGuvenli(aramaMetni) === "-" ? "" : htmlGuvenli(aramaMetni)}">
-            </div>
-        </div>
+                <div class="form-grubu hasta-arama-alani">
+                    <label for="hastaAramaMetni">
+                        Hasta Ara
+                    </label>
 
-        <div class="form-islemleri">
-            <button type="submit" class="yenile-butonu">
-                Ara
-            </button>
+                    <input
+                        type="text"
+                        id="hastaAramaMetni"
+                        value="${htmlGuvenli(aramaMetni)}"
+                        placeholder="Ad, soyad, e-posta, T.C., telefon veya doğum tarihi">
+                </div>
 
-            ${aramaMetni
-                ? `
+                <div class="baslik-butonlari">
                     <button
-                        type="button"
-                        class="iptal-butonu"
-                        onclick="hastalariGetir()">
-                        Temizle
+                        type="submit"
+                        class="yenile-butonu">
+                        Ara
                     </button>
-                `
+
+                    ${aramaMetni
+                ? `
+                            <button
+                                type="button"
+                                class="iptal-butonu"
+                                onclick="hastalariGetir()">
+                                Temizle
+                            </button>
+                        `
                 : ""
             }
-        </div>
-    </form>
-`;
+                </div>
+            </form>
+        `;
 
-        if (!hastalar || hastalar.length === 0) {
+        if (!hastalar ||
+            hastalar.length === 0) {
+
             icerikAlani.innerHTML = `
                 <div class="icerik-karti">
                     <div class="icerik-basligi">
                         <div>
                             <h3>Hastalar</h3>
-                            <p>Sistemde kayıtlı aktif hastalar</p>
+
+                            <p>
+                                Sistemde kayıtlı aktif hastalar
+                            </p>
                         </div>
 
                         ${sekreterMi
@@ -1187,26 +1207,20 @@ async function hastalariGetir(aramaMetni = "") {
                 </div>
             `;
 
-            document
-                .getElementById("hastaAramaFormu")
-                .addEventListener("submit", hastaAra);
+            hastaAramaOlaylariniBagla(
+                aramaMetni
+            );
 
-            
-            document
-    .getElementById("hastaAramaMetni")
-    .addEventListener("input", (event) => {
-        event.target.value =
-            event.target.value
-                .replace(/[^0-9]/g, "")
-                .slice(0, 11);
-    });
+            return;
         }
 
         const satirlar = hastalar
             .map((hasta) => {
                 return `
                     <tr>
-                        <td>${hasta.id}</td>
+                        <td>
+                            ${hasta.id}
+                        </td>
 
                         <td>
                             ${htmlGuvenli(hasta.ad)}
@@ -1227,7 +1241,9 @@ async function hastalariGetir(aramaMetni = "") {
                         </td>
 
                         <td>
-                            ${tarihYaz(hasta.dogumTarihi)}
+                            ${tarihYaz(
+                    hasta.dogumTarihi
+                )}
                         </td>
 
                         <td>
@@ -1271,6 +1287,7 @@ async function hastalariGetir(aramaMetni = "") {
 
                         <p>
                             Sistemde kayıtlı aktif hastalar
+
                             ${aramaMetni
                 ? ` — "${htmlGuvenli(aramaMetni)}" için ${hastalar.length} sonuç`
                 : ""
@@ -1314,7 +1331,11 @@ async function hastalariGetir(aramaMetni = "") {
                                 <th>Doğum tarihi</th>
                                 <th>Telefon</th>
                                 <th>Durum</th>
-                                ${sekreterMi ? "<th>İşlem</th>" : ""}
+
+                                ${sekreterMi
+                ? "<th>İşlem</th>"
+                : ""
+            }
                             </tr>
                         </thead>
 
@@ -1326,17 +1347,9 @@ async function hastalariGetir(aramaMetni = "") {
             </div>
         `;
 
-        document
-            .getElementById("hastaAramaFormu")
-            .addEventListener("submit", hastaAra);
-        document
-            .getElementById("hastaAramaMetni")
-            .addEventListener("input", (event) => {
-                event.target.value =
-                    event.target.value
-                        .replace(/[^0-9]/g, "")
-                        .slice(0, 11);
-            });
+        hastaAramaOlaylariniBagla(
+            aramaMetni
+        );
     }
     catch (hata) {
         icerikAlani.innerHTML = `
@@ -1347,23 +1360,45 @@ async function hastalariGetir(aramaMetni = "") {
     }
 }
 
-
 function hastaAra(event) {
     event.preventDefault();
 
-    const aramaMetni =
-        document
-            .getElementById("hastaAramaMetni")
-            .value
-            .trim();
+    const aramaAlani =
+        document.getElementById(
+            "hastaAramaMetni"
+        );
 
-    if (aramaMetni && !/^[0-9]{11}$/.test(aramaMetni)) {
-        alert("TC kimlik numarası 11 haneli olmalıdır.");
+    if (!aramaAlani) {
         return;
     }
 
-    hastalariGetir(aramaMetni);
+    hastalariGetir(
+        aramaAlani.value.trim()
+    );
 }
+function hastaAramaOlaylariniBagla(mevcutArama) {
+    const form =
+        document.getElementById("hastaAramaFormu");
+
+    const aramaAlani =
+        document.getElementById("hastaAramaMetni");
+
+    if (!form || !aramaAlani) {
+        return;
+    }
+
+    form.addEventListener("submit", hastaAra);
+
+    if (mevcutArama) {
+        aramaAlani.focus();
+
+        aramaAlani.setSelectionRange(
+            aramaAlani.value.length,
+            aramaAlani.value.length
+        );
+    }
+}
+
 function hastaOlusturmaFormunuGoster() {
     icerikAlani.innerHTML = `
         <div class="icerik-karti">
@@ -2786,6 +2821,9 @@ async function randevuHastaKendiIptalEt(randevuId) {
     }
 
     try {
+
+
+
         const cevap = await apiIstegi(
             `/api/Randevu/${randevuId}/durum`,
             {
@@ -3711,17 +3749,22 @@ async function muayeneleriGetir() {
             .map((muayene) => {
                 return `
                     <tr>
-                        <td>
-                            ${htmlGuvenli(
-                    muayene.doktorAdiSoyadi
-                )}
-                        </td>
+                       ${rol !== "Doktor"
+                        ? `
+        <td>
+            ${htmlGuvenli(
+                            muayene.doktorAdiSoyadi
+                        )}
+        </td>
+      `
+                        : ""
+                    }
 
-                        <td>
-                            ${htmlGuvenli(
-                    muayene.hastaAdiSoyadi
-                )}
-                        </td>
+<td>
+    ${htmlGuvenli(
+                        muayene.hastaAdiSoyadi
+                    )}
+</td>
 
                         <td>
                             ${tarihYaz(
@@ -3792,8 +3835,11 @@ async function muayeneleriGetir() {
                     <table class="veri-tablosu">
                         <thead>
                             <tr>
-                                <th>Doktor</th>
-                                <th>Hasta</th>
+                                ${rol !== "Doktor"
+                ? "<th>Doktor</th>"
+                : ""
+}
+<th>Hasta</th>
                                 <th>Tarih</th>
                                 <th>Şikâyet</th>
                                 <th>Değerlendirme</th>
@@ -4239,39 +4285,58 @@ window.muayeneTeshisleriniGoster =
                         )
                 );
 
+            const doktorMu =
+                (rol ?? "").trim().toLowerCase() === "doktor";
+
             const satirlar =
                 mevcutKayitlar.length > 0
                     ? mevcutKayitlar
                         .map((kayit) => `
-                            <tr>
-                                <td>
-                                    ${htmlGuvenli(
+                <tr>
+                    <td>
+                        ${htmlGuvenli(
                             kayit.teshisKodu || "-"
                         )}
-                                </td>
+                    </td>
 
-                                <td>
-                                    ${htmlGuvenli(
+                    <td>
+                        ${htmlGuvenli(
                             kayit.teshisAdi
                         )}
-                                </td>
+                    </td>
 
-                                <td class="metin-hucresi">
-                                    ${htmlGuvenli(
+                    <td class="metin-hucresi">
+                        ${htmlGuvenli(
                             kayit.doktorNotu || "-"
                         )}
-                                </td>
-                            </tr>
-                        `)
+                    </td>
+
+                    ${doktorMu
+                                ? `
+                            <td>
+                                <button
+                                    type="button"
+                                    class="iptal-butonu"
+                                    onclick="muayeneTeshisiSil(
+                                        ${kayit.id},
+                                        ${muayeneId}
+                                    )">
+                                    Sil
+                                </button>
+                            </td>
+                          `
+                                : ""
+                            }
+                </tr>
+            `)
                         .join("")
                     : `
-                        <tr>
-                            <td colspan="3">
-                                Bu muayeneye henüz
-                                teşhis eklenmemiş.
-                            </td>
-                        </tr>
-                    `;
+            <tr>
+                <td colspan="${doktorMu ? 4 : 3}">
+                    Bu muayeneye henüz teşhis eklenmemiş.
+                </td>
+            </tr>
+        `;
 
             const secenekler =
                 eklenebilirTeshisler
@@ -4371,6 +4436,7 @@ window.muayeneTeshisleriniGoster =
                                     <th>Teşhis kodu</th>
                                     <th>Teşhis adı</th>
                                     <th>Doktor notu</th>
+                                    ${doktorMu ? "<th>İşlem</th>" : ""}
                                 </tr>
                             </thead>
 
@@ -4409,8 +4475,32 @@ window.muayeneTeshisleriniGoster =
             `;
         }
     };
+window.muayeneTeshisiSil =
+    async function (id, muayeneId) {
+        try {
+            const cevap = await apiIstegi(
+                `/api/MuayeneTeshisi/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
 
+            if (!cevap.ok) {
+                console.error(
+                    `Teşhis silinemedi. Hata kodu: ${cevap.status}`
+                );
 
+                return;
+            }
+
+            await window.muayeneTeshisleriniGoster(
+                muayeneId
+            );
+        }
+        catch (hata) {
+            console.error(hata);
+        }
+    };
 async function muayeneTeshisiEkle(
     event,
     muayeneId
@@ -4488,7 +4578,7 @@ async function muayeneTeshisiEkle(
             throw new Error(hataMesaji);
         }
 
-        alert("Teşhis başarıyla eklendi.");
+        
 
         await window.muayeneTeshisleriniGoster(
             muayeneId
@@ -4562,11 +4652,22 @@ async function receteleriGetir() {
                 )}
                         </td>
 
-                        <td>
-                            ${htmlGuvenli(
-                    recete.doktorAdiSoyadi
-                )}
-                        </td>
+                       ${rol === "Doktor"
+                        ? `
+        <td>
+            ${htmlGuvenli(
+                            recete.hastaKimlikNumarasi
+                        )}
+        </td>
+      `
+                        : `
+        <td>
+            ${htmlGuvenli(
+                            recete.doktorAdiSoyadi
+                        )}
+        </td>
+      `
+}
 
                         <td>
                             ${htmlGuvenli(
@@ -4631,8 +4732,11 @@ async function receteleriGetir() {
                             <tr>
                                 <th>Reçete No</th>
                                 <th>Tarih</th>
-                                <th>Doktor</th>
-                                <th>Hasta</th>
+                                ${rol === "Doktor"
+                ? "<th>Hasta T.C.</th>"
+                : "<th>Doktor</th>"
+}
+<th>Hasta</th>
                                 <th>Genel Not</th>
                                 <th>İşlem</th>
                             </tr>

@@ -2,6 +2,7 @@
 using HospitalManagement.DataAccess.Depolar.Soyut;
 using HospitalManagement.Entity.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace HospitalManagement.DataAccess.Depolar.Somut
 {
@@ -37,17 +38,70 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
             if (!string.IsNullOrWhiteSpace(arama))
             {
                 var temizArama = arama.Trim();
+                var aramaDeseni = $"%{temizArama}%";
 
-                sorgu = sorgu.Where(
-                    x => EF.Functions.ILike(
-                             x.Ad,
-                             $"%{temizArama}%")
-                         || EF.Functions.ILike(
-                             x.Soyad,
-                             $"%{temizArama}%")
-                         || EF.Functions.ILike(
-                             x.KimlikNumarasi,
-                             $"%{temizArama}%"));
+                var tarihFormatlari = new[]
+                {
+        "dd.MM.yyyy",
+        "dd/MM/yyyy",
+        "yyyy-MM-dd"
+    };
+
+                var tarihMi = DateOnly.TryParseExact(
+                    temizArama,
+                    tarihFormatlari,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var arananTarih);
+
+                if (tarihMi)
+                {
+                    sorgu = sorgu.Where(x =>
+                        EF.Functions.ILike(
+                            x.Ad,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.Soyad,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.KimlikNumarasi,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.TelefonNumarasi ?? "",
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.KullaniciHesabi.Eposta,
+                            aramaDeseni) ||
+
+                        x.DogumTarihi == arananTarih);
+                }
+                else
+                {
+                    sorgu = sorgu.Where(x =>
+                        EF.Functions.ILike(
+                            x.Ad,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.Soyad,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.KimlikNumarasi,
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.TelefonNumarasi ?? "",
+                            aramaDeseni) ||
+
+                        EF.Functions.ILike(
+                            x.KullaniciHesabi.Eposta,
+                            aramaDeseni));
+                }
             }
             var toplamKayitSayisi =
     await sorgu.CountAsync(cancellationToken);
