@@ -20,11 +20,11 @@ namespace HospitalManagementAPI.DTOs.Yetkiler
             ErrorMessage = "Parola en fazla 100 karakter olabilir.")]
         public string Parola { get; set; } = string.Empty;
         [Required(ErrorMessage = "Ad zorunludur.")]
-        [MaxLength(25)]
+        [MaxLength(20)]
         public string Ad { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Soyad zorunludur.")]
-        [MaxLength(20)]
+        [MaxLength(25)]
         public string Soyad { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "T.C. kimlik numarası zorunludur.")]

@@ -4475,8 +4475,107 @@ window.muayeneTeshisleriniGoster =
             `;
         }
     };
+function silmeOnayiAl() {
+    return new Promise((resolve) => {
+        const pencere =
+            document.getElementById(
+                "silmeOnayPenceresi"
+            );
+
+        const onayButonu =
+            document.getElementById(
+                "silmeOnayButonu"
+            );
+
+        const iptalButonu =
+            document.getElementById(
+                "silmeIptalButonu"
+            );
+
+        pencere.classList.remove("gizli");
+
+        function pencereyiKapat(sonuc) {
+            pencere.classList.add("gizli");
+
+            onayButonu.removeEventListener(
+                "click",
+                onayla
+            );
+
+            iptalButonu.removeEventListener(
+                "click",
+                iptalEt
+            );
+
+            resolve(sonuc);
+        }
+
+        function onayla() {
+            pencereyiKapat(true);
+        }
+
+        function iptalEt() {
+            pencereyiKapat(false);
+        }
+
+        onayButonu.addEventListener(
+            "click",
+            onayla
+        );
+
+        iptalButonu.addEventListener(
+            "click",
+            iptalEt
+        );
+    });
+}
+function basariMesajiGoster(mesaj) {
+    return new Promise((resolve) => {
+        const pencere =
+            document.getElementById(
+                "basariPenceresi"
+            );
+
+        const mesajAlani =
+            document.getElementById(
+                "basariPenceresiMesaji"
+            );
+
+        const tamamButonu =
+            document.getElementById(
+                "basariTamamButonu"
+            );
+
+        mesajAlani.textContent = mesaj;
+        pencere.classList.remove("gizli");
+
+        function kapat() {
+            pencere.classList.add("gizli");
+
+            tamamButonu.removeEventListener(
+                "click",
+                kapat
+            );
+
+            resolve();
+        }
+
+        tamamButonu.addEventListener(
+            "click",
+            kapat
+        );
+    });
+}
+
 window.muayeneTeshisiSil =
     async function (id, muayeneId) {
+        const onaylandiMi =
+            await silmeOnayiAl();
+
+        if (!onaylandiMi) {
+            return;
+        }
+
         try {
             const cevap = await apiIstegi(
                 `/api/MuayeneTeshisi/${id}`,
@@ -4486,11 +4585,10 @@ window.muayeneTeshisiSil =
             );
 
             if (!cevap.ok) {
-                console.error(
-                    `Teşhis silinemedi. Hata kodu: ${cevap.status}`
+                throw new Error(
+                    "Teşhis silinemedi. " +
+                    `Hata kodu: ${cevap.status}`
                 );
-
-                return;
             }
 
             await window.muayeneTeshisleriniGoster(
@@ -5539,7 +5637,9 @@ async function receteyeIlacEkle(
             throw new Error(hataMesaji);
         }
 
-        alert("İlaç reçeteye başarıyla eklendi.");
+        await basariMesajiGoster(
+            "İlaç reçeteye başarıyla eklendi."
+        );
 
         await receteIceriginiGetir(
             receteId

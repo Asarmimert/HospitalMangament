@@ -290,7 +290,7 @@ Cache anahtarı:
 
 ```text
 aktif-departmanlar
-
+```
 
 Cache kaydı için 10 dakikalık mutlak geçerlilik süresi
 kullanılmaktadır. Süre dolduğunda aktif departmanlar PostgreSQL

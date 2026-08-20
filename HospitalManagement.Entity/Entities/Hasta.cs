@@ -16,11 +16,11 @@ namespace HospitalManagement.Entity.Entities
         public KullaniciHesabi KullaniciHesabi { get; set; } = null!;
 
         [Required]
-        [MaxLength(25)]
+        [MaxLength(20)]
         public string Ad { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(20)]
+        [MaxLength(25)]
         public string Soyad { get; set; } = string.Empty;
 
 

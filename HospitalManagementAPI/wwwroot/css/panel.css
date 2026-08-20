@@ -693,3 +693,105 @@ button {
         border: 1px solid #d1d5db;
         border-radius: 6px;
     }
+.modal-arka-plan {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+}
+
+    .modal-arka-plan.gizli {
+        display: none;
+    }
+
+.modal-kutusu {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #dbe3e8;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.modal-ikon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    color: #b42318;
+    font-size: 30px;
+    font-weight: 700;
+    background: #fee4e2;
+    border-radius: 50%;
+}
+
+.modal-kutusu h3 {
+    margin: 0 0 10px;
+    color: #10233f;
+    font-size: 23px;
+}
+
+.modal-kutusu p {
+    margin: 0 0 26px;
+    color: #667085;
+    line-height: 1.5;
+}
+
+.modal-butonlari {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+    .modal-butonlari button {
+        min-width: 125px;
+        padding: 12px 20px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+.modal-iptal-butonu {
+    color: #344054;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+}
+
+.modal-sil-butonu {
+    color: #ffffff;
+    background: #d92d20;
+    border: 1px solid #d92d20;
+}
+
+.modal-iptal-butonu:hover {
+    background: #f2f4f7;
+}
+
+.modal-sil-butonu:hover {
+    background: #b42318;
+}
+
+.basari-ikon {
+    color: #067647;
+    background: #d1fadf;
+}
+
+.modal-tamam-butonu {
+    color: #ffffff;
+    background: #087f72;
+    border: 1px solid #087f72;
+}
+
+    .modal-tamam-butonu:hover {
+        background: #066b61;
+    }

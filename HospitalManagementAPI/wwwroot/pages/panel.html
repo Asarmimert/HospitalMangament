@@ -9,6 +9,7 @@
     <title>Yönetim Paneli</title>
     <link rel="icon" type="image/x-icon" href="/588hospital_100778.ico">
     <link rel="stylesheet" href="/css/panel.css?v=4">
+    <link rel="stylesheet" href="/css/panel.css?v=1025">
 </head>
 
 <body>
@@ -146,11 +147,70 @@
                     </article>
                 </div>
 
-               
+
             </section>
         </main>
 
     </div>
 
-    <script src="/js/panel.js?v=1016"></script></body>
+
+    <div id="silmeOnayPenceresi" class="modal-arka-plan gizli">
+        <div class="modal-kutusu">
+            <div class="modal-ikon">!</div>
+
+            <h3>Teşhisi Sil</h3>
+
+            <p>
+                Bu teşhisi silmek istediğinize emin misiniz?
+            </p>
+
+            <div class="modal-butonlari">
+                <button type="button"
+                        id="silmeIptalButonu"
+                        class="modal-iptal-butonu">
+                    Vazgeç
+                </button>
+
+                <button type="button"
+                        id="silmeOnayButonu"
+                        class="modal-sil-butonu">
+                    Evet, Sil
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="basariPenceresi" class="modal-arka-plan gizli">
+        <div class="modal-kutusu">
+            <div class="modal-ikon basari-ikon">✓</div>
+
+            <h3>İşlem Başarılı</h3>
+
+            <p id="basariPenceresiMesaji"></p>
+
+            <div class="modal-butonlari">
+                <button type="button"
+                        id="basariTamamButonu"
+                        class="modal-tamam-butonu">
+                    Tamam
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <script src="/js/panel.js?v=1025"></script>
+
+
+
+
+
+
+
+
+</body>
 </html>
