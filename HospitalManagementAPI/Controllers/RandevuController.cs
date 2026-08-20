@@ -300,9 +300,11 @@ namespace HospitalManagementAPI.Controllers
             return NoContent();
         }
         [Authorize(
-        Roles = nameof(KullaniciRolu.Sekreter) +
-            "," +
-            nameof(KullaniciRolu.Doktor))]
+         Roles = nameof(KullaniciRolu.Sekreter) +
+             "," +
+             nameof(KullaniciRolu.Doktor) +
+             "," +
+             nameof(KullaniciRolu.Hasta))]
         [HttpPatch("{id:int}/durum")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -339,7 +341,46 @@ namespace HospitalManagementAPI.Controllers
                     return Forbid();
                 }
             }
+            if (User.IsInRole(nameof(KullaniciRolu.Hasta)))
+            {
+                var kullaniciHesabiId =
+                    User.KullaniciIdGetir();
 
+                if (!kullaniciHesabiId.HasValue)
+                {
+                    return Unauthorized();
+                }
+
+                if (randevu.Hasta.KullaniciHesabiId !=
+                    kullaniciHesabiId.Value)
+                {
+                    return Forbid();
+                }
+
+                // Hasta yalnızca kendi randevusunu iptal edebilir.
+                if (dto.Durum != RandevuDurumu.IptalEdildi)
+                {
+                    return BadRequest(
+                        new
+                        {
+                            mesaj =
+                                "Hasta yalnızca randevusunu iptal edebilir."
+                        });
+                }
+
+                // Randevu başlangıcına en az 1 saat kalmış olmalı.
+                if (randevu.BaslangicZamani <=
+                    DateTime.UtcNow.AddHours(1))
+                {
+                    return BadRequest(
+                        new
+                        {
+                            mesaj =
+                                "Randevu başlangıcına 1 saatten az " +
+                                "kaldığı için iptal edilemez."
+                        });
+                }
+            }
             var guncellendiMi =
                 await _randevuServisi.DurumGuncelleAsync(
                     id,

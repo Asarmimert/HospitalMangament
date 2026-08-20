@@ -16,6 +16,9 @@ namespace HospitalManagement.Business.Soyut
         Task<Doctor?> IdIleGetirAsync(int id);
 
         Task<Doctor> EkleAsync(Doctor doktor);
+        Task<Doctor> HesabiylaBirlikteEkleAsync(
+    Doctor doktor,
+    KullaniciHesabi kullaniciHesabi);
 
         Task<bool> GuncelleAsync(Doctor doktor);
 

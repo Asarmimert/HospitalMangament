@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Business.Soyut;
+using Microsoft.AspNetCore.Identity;
 using HospitalManagement.Entity.Entities;
 using HospitalManagementAPI.DTOs.Common;
 using HospitalManagementAPI.DTOs.Doctors;
@@ -13,10 +14,14 @@ namespace HospitalManagementAPI.Controllers
     {
         private readonly IDoktorServisi _doktorServisi;
 
+        private readonly IPasswordHasher<KullaniciHesabi>
+    _parolaHasher;
         public DoctorsController(
-            IDoktorServisi doktorServisi)
+     IDoktorServisi doktorServisi,
+     IPasswordHasher<KullaniciHesabi> parolaHasher)
         {
             _doktorServisi = doktorServisi;
+            _parolaHasher = parolaHasher;
         }
         [HttpGet]
         public async Task<IActionResult> GetAll(
@@ -69,6 +74,61 @@ namespace HospitalManagementAPI.Controllers
 
             return Ok(DtoyaDonustur(doktor));
         }
+        [Authorize(Roles = nameof(KullaniciRolu.Sekreter))]
+        [HttpPost("hesapli")]
+        public async Task<IActionResult> CreateWithAccount(
+    CreateDoctorWithAccountDto dto)
+        {
+            var kullaniciHesabi = new KullaniciHesabi
+            {
+                Eposta = dto.Eposta,
+                Rol = KullaniciRolu.Doktor
+            };
+
+            kullaniciHesabi.ParolaHash =
+                _parolaHasher.HashPassword(
+                    kullaniciHesabi,
+                    dto.Parola);
+
+            var yeniDoktor = new Doctor
+            {
+                DepartmentId = dto.DepartmentId,
+                DoktorAd = dto.DoktorAd,
+                DoktorSoyad = dto.DoktorSoyad,
+                TelefonNumarasi = dto.TelefonNumarasi,
+                UzmanlikAlani = dto.UzmanlikAlani,
+                KullaniciHesabi = kullaniciHesabi
+            };
+
+            var eklenenDoktor =
+                await _doktorServisi
+                    .HesabiylaBirlikteEkleAsync(
+                        yeniDoktor,
+                        kullaniciHesabi);
+
+            var iliskiliDoktor =
+                await _doktorServisi.IdIleGetirAsync(
+                    eklenenDoktor.Id);
+
+            if (iliskiliDoktor is null)
+            {
+                throw new InvalidOperationException(
+                    "Eklenen doktor bilgileri alınamadı.");
+            }
+
+            var cevap = DtoyaDonustur(iliskiliDoktor);
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = cevap.Id },
+                cevap);
+        }
+
+
+
+
+
+
         [Authorize(Roles = nameof(KullaniciRolu.Sekreter))]
         [HttpPost]
         public async Task<IActionResult> Create(

@@ -24,6 +24,7 @@ const kullaniciEposta =
 const kullaniciRol =
     document.getElementById("kullaniciRol");
 
+
 const rolBilgisi =
     document.getElementById("rolBilgisi");
 
@@ -211,63 +212,95 @@ async function departmanlariGetir() {
             return;
         }
 
+        const sekreterMi =
+            (rol ?? "").trim().toLowerCase() === "sekreter";
+
         const satirlar = departmanlar
             .map((departman) => {
                 return `
-                    <tr>
-                        <td>
-                            ${departman.departmentId}
-                        </td>
+            <tr>
+                <td>
+                    ${departman.departmentId}
+                </td>
 
-                        <td>
-                            ${htmlGuvenli(departman.name)}
-                        </td>
+                <td>
+                    ${htmlGuvenli(departman.name)}
+                </td>
 
-                        <td class="metin-hucresi">
-                            ${htmlGuvenli(
+                <td class="metin-hucresi">
+                    ${htmlGuvenli(
                     departman.description
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            <span class="durum-etiketi">
-                                Aktif
-                            </span>
-                        </td>
-                    </tr>
-                `;
+                <td>
+                    <span class="durum-etiketi">
+                        Aktif
+                    </span>
+                </td>
+
+                ${sekreterMi
+                        ? `
+                    <td>
+                        <button
+                            type="button"
+                            class="iptal-butonu"
+                            onclick="departmanSil(${departman.departmentId})">
+                            Sil
+                        </button>
+                    </td>
+                `
+                        : ""
+                    }
+            </tr>
+        `;
             })
             .join("");
 
         icerikAlani.innerHTML = `
-            <div class="icerik-karti">
-                <div class="icerik-basligi">
-                    <div>
-                        <h3>Departmanlar</h3>
+    <div class="icerik-karti">
+        <div class="icerik-basligi">
+            <div>
+                <h3>Departmanlar</h3>
 
-                        <p>
-                            Aktif hastane departmanları
-                        </p>
-                    </div>
+                <p>
+                    Aktif hastane departmanları
+                </p>
+            </div>
 
-                    <button
-                        type="button"
-                        class="yenile-butonu"
-                        onclick="departmanlariGetir()">
-                        Yenile
-                    </button>
-                </div>
+            <div class="baslik-butonlari">
+                ${(rol ?? "").trim().toLowerCase() === "sekreter"
+                ? `
+                        <button
+                            type="button"
+                            class="yenile-butonu"
+                            onclick="departmanOlusturmaFormunuGoster()">
+                            Yeni Departman
+                        </button>
+                    `
+                : ""
+                }
+
+                <button
+                    type="button"
+                    class="yenile-butonu"
+                    onclick="departmanlariGetir()">
+                    Yenile
+                </button>
+            </div>
+        </div>
 
                 <div class="tablo-kapsayici">
                     <table class="veri-tablosu">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Departman</th>
-                                <th>Açıklama</th>
-                                <th>Durum</th>
-                            </tr>
-                        </thead>
+                       <thead>
+    <tr>
+        <th>ID</th>
+        <th>Departman</th>
+        <th>Açıklama</th>
+        <th>Durum</th>
+        ${sekreterMi ? "<th>İşlem</th>" : ""}
+    </tr>
+</thead>
 
                         <tbody>
                             ${satirlar}
@@ -285,7 +318,235 @@ async function departmanlariGetir() {
         `;
     }
 }
+async function departmanOlusturmaFormunuGoster() {
+    icerikAlani.innerHTML = `
+        <div class="icerik-karti">
+            <div class="icerik-basligi">
+                <div>
+                    <h3>Yeni Departman</h3>
 
+                    <p>
+                        Departman adı ve açıklamasını giriniz.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="yenile-butonu"
+                    onclick="departmanlariGetir()">
+                    Listeye Dön
+                </button>
+            </div>
+
+            <form
+                id="departmanOlusturmaFormu"
+                class="randevu-formu">
+
+                <div class="form-grid">
+                    <div class="form-grubu">
+                        <label for="departmanAdi">
+                            Departman adı
+                        </label>
+
+                        <input
+                            type="text"
+                            id="departmanAdi"
+                            maxlength="50"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="departmanAciklama">
+                            Açıklama
+                        </label>
+
+                        <input
+                            type="text"
+                            id="departmanAciklama"
+                            maxlength="200">
+                    </div>
+                </div>
+
+                <div class="form-islemleri">
+                    <button
+                        type="submit"
+                        class="yenile-butonu">
+                        Departmanı Kaydet
+                    </button>
+                </div>
+
+                <div
+                    id="departmanMesajAlani"
+                    class="mesaj gizli">
+                </div>
+            </form>
+        </div>
+    `;
+
+    document
+        .getElementById("departmanOlusturmaFormu")
+        .addEventListener(
+            "submit",
+            departmanOlustur
+        );
+}
+
+
+async function departmanOlustur(event) {
+    event.preventDefault();
+
+    const ad =
+        document
+            .getElementById("departmanAdi")
+            .value
+            .trim();
+
+    const aciklama =
+        document
+            .getElementById("departmanAciklama")
+            .value
+            .trim();
+
+    const mesajAlani =
+        document.getElementById(
+            "departmanMesajAlani"
+        );
+
+    const buton =
+        event.currentTarget.querySelector(
+            "button[type='submit']"
+        );
+
+    buton.disabled = true;
+    buton.textContent = "Kaydediliyor...";
+
+    try {
+        const cevap = await apiIstegi(
+            "/api/Departments",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    name: ad,
+                    description: aciklama || null
+                })
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Departman oluşturulamadı.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+
+                    if (hataVerisi.errors) {
+                        const dogrulamaHatalari =
+                            Object.values(
+                                hataVerisi.errors
+                            )
+                                .flat()
+                                .join(" ");
+
+                        if (dogrulamaHatalari) {
+                            hataMesaji =
+                                dogrulamaHatalari;
+                        }
+                    }
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        mesajAlani.textContent =
+            "Departman başarıyla oluşturuldu.";
+
+        mesajAlani.className =
+            "mesaj basarili";
+
+        setTimeout(() => {
+            departmanlariGetir();
+        }, 800);
+    }
+    catch (hata) {
+        mesajAlani.textContent =
+            hata.message;
+
+        mesajAlani.className =
+            "mesaj hata";
+    }
+    finally {
+        buton.disabled = false;
+        buton.textContent =
+            "Departmanı Kaydet";
+    }
+}
+async function departmanSil(departmentId) {
+    const onaylandiMi = confirm(
+        "Bu departmanı silmek istediğinize emin misiniz?"
+    );
+
+    if (!onaylandiMi) {
+        return;
+    }
+
+    try {
+        const cevap = await apiIstegi(
+            `/api/Departments/${departmentId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Departman silinemedi.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        alert("Departman başarıyla silindi.");
+
+        await departmanlariGetir();
+    }
+    catch (hata) {
+        alert(hata.message);
+    }
+}
 
 async function doktorlariGetir() {
     icerikAlani.innerHTML = `
@@ -324,47 +585,64 @@ async function doktorlariGetir() {
             return;
         }
 
+        const sekreterMi =
+            (rol ?? "").trim().toLowerCase() === "sekreter";
+
         const satirlar = doktorlar
             .map((doktor) => {
                 return `
-                    <tr>
-                        <td>
-                            ${htmlGuvenli(
+            <tr>
+                <td>
+                    ${htmlGuvenli(
                     doktor.doktorAd
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            ${htmlGuvenli(
+                <td>
+                    ${htmlGuvenli(
                     doktor.doktorSoyad
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            ${htmlGuvenli(
+                <td>
+                    ${htmlGuvenli(
                     doktor.departmanAdi
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            ${htmlGuvenli(
+                <td>
+                    ${htmlGuvenli(
                     doktor.uzmanlikAlani
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            ${htmlGuvenli(
+                <td>
+                    ${htmlGuvenli(
                     doktor.telefonNumarasi
                 )}
-                        </td>
+                </td>
 
-                        <td>
-                            <span class="durum-etiketi">
-                                Aktif
-                            </span>
-                        </td>
-                    </tr>
-                `;
+                <td>
+                    <span class="durum-etiketi">
+                        Aktif
+                    </span>
+                </td>
+
+                ${sekreterMi
+                        ? `
+                    <td>
+                        <button
+                            type="button"
+                            class="iptal-butonu"
+                            onclick="doktorSil(${doktor.id})">
+                            Sil
+                        </button>
+                    </td>
+                `
+                        : ""
+                    }
+            </tr>
+        `;
             })
             .join("");
 
@@ -379,26 +657,41 @@ async function doktorlariGetir() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        class="yenile-butonu"
-                        onclick="doktorlariGetir()">
-                        Yenile
-                    </button>
+                    <div class="baslik-butonlari">
+    ${rol === "Sekreter"
+                ? `
+            <button
+                type="button"
+                class="yenile-butonu"
+                onclick="doktorOlusturmaFormunuGoster()">
+                Yeni Doktor
+            </button>
+        `
+                : ""
+    }
+
+    <button
+        type="button"
+        class="yenile-butonu"
+        onclick="doktorlariGetir()">
+        Yenile
+    </button>
+</div>
                 </div>
 
                 <div class="tablo-kapsayici">
                     <table class="veri-tablosu">
                         <thead>
-                            <tr>
-                                <th>Ad</th>
-                                <th>Soyad</th>
-                                <th>Departman</th>
-                                <th>Uzmanlık</th>
-                                <th>Telefon</th>
-                                <th>Durum</th>
-                            </tr>
-                        </thead>
+    <tr>
+        <th>Ad</th>
+        <th>Soyad</th>
+        <th>Departman</th>
+        <th>Uzmanlık</th>
+        <th>Telefon</th>
+        <th>Durum</th>
+        ${sekreterMi ? "<th>İşlem</th>" : ""}
+    </tr>
+</thead>
 
                         <tbody>
                             ${satirlar}
@@ -416,7 +709,377 @@ async function doktorlariGetir() {
         `;
     }
 }
-async function hastalariGetir() {
+async function doktorOlusturmaFormunuGoster() {
+    icerikAlani.innerHTML = `
+        <div class="yukleniyor">
+            Doktor formu hazırlanıyor...
+        </div>
+    `;
+
+    try {
+        const cevap =
+            await apiIstegi("/api/Departments");
+
+        if (!cevap.ok) {
+            throw new Error(
+                "Departmanlar alınamadı."
+            );
+        }
+
+        const departmanlar = await cevap.json();
+
+        const departmanSecenekleri =
+            departmanlar
+                .map((departman) => {
+                    return `
+                        <option
+                            value="${departman.departmentId}">
+                            ${htmlGuvenli(departman.name)}
+                        </option>
+                    `;
+                })
+                .join("");
+
+        icerikAlani.innerHTML = `
+            <div class="icerik-karti">
+                <div class="icerik-basligi">
+                    <div>
+                        <h3>Yeni Doktor</h3>
+
+                        <p>
+                            Doktorun hesap ve profil
+                            bilgilerini giriniz.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="yenile-butonu"
+                        onclick="doktorlariGetir()">
+                        Listeye Dön
+                    </button>
+                </div>
+
+                <form
+                    id="doktorOlusturmaFormu"
+                    class="randevu-formu">
+
+                    <div class="form-grid">
+                        <div class="form-grubu">
+                            <label for="doktorEposta">
+                                E-posta
+                            </label>
+
+                            <input
+                                type="email"
+                                id="doktorEposta"
+                                required>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorParola">
+                                Parola
+                            </label>
+
+                            <input
+                                type="password"
+                                id="doktorParola"
+                                minlength="8"
+                                required>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorDepartman">
+                                Departman
+                            </label>
+
+                            <select
+                                id="doktorDepartman"
+                                required>
+
+                                <option value="">
+                                    Departman seçiniz
+                                </option>
+
+                                ${departmanSecenekleri}
+                            </select>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorAdi">
+                                Doktor adı
+                            </label>
+
+                            <input
+                                type="text"
+                                id="doktorAdi"
+                                maxlength="25"
+                                required>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorSoyadi">
+                                Doktor soyadı
+                            </label>
+
+                            <input
+                                type="text"
+                                id="doktorSoyadi"
+                                maxlength="40"
+                                required>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorTelefon">
+                                Telefon numarası
+                            </label>
+
+                            <input
+                                type="text"
+                                id="doktorTelefon"
+                                maxlength="11"
+                                pattern="[0-9]{11}"
+                                placeholder="05551234567">
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="doktorUzmanlik">
+                                Uzmanlık alanı
+                            </label>
+
+                            <input
+                                type="text"
+                                id="doktorUzmanlik"
+                                maxlength="35">
+                        </div>
+                    </div>
+
+                    <div class="form-islemleri">
+                        <button
+                            type="submit"
+                            class="yenile-butonu">
+                            Doktoru Kaydet
+                        </button>
+                    </div>
+
+                    <div
+                        id="doktorMesajAlani"
+                        class="mesaj gizli">
+                    </div>
+                </form>
+            </div>
+        `;
+
+        document
+            .getElementById("doktorOlusturmaFormu")
+            .addEventListener(
+                "submit",
+                doktorOlustur
+            );
+    }
+    catch (hata) {
+        icerikAlani.innerHTML = `
+            <div class="hata-kutusu">
+                ${htmlGuvenli(hata.message)}
+            </div>
+        `;
+    }
+}
+async function doktorOlustur(event) {
+    event.preventDefault();
+
+    const eposta =
+        document
+            .getElementById("doktorEposta")
+            .value
+            .trim();
+
+    const parola =
+        document
+            .getElementById("doktorParola")
+            .value;
+
+    const departmentId = Number(
+        document
+            .getElementById("doktorDepartman")
+            .value
+    );
+
+    const doktorAd =
+        document
+            .getElementById("doktorAdi")
+            .value
+            .trim();
+
+    const doktorSoyad =
+        document
+            .getElementById("doktorSoyadi")
+            .value
+            .trim();
+
+    const telefonNumarasi =
+        document
+            .getElementById("doktorTelefon")
+            .value
+            .trim();
+
+    const uzmanlikAlani =
+        document
+            .getElementById("doktorUzmanlik")
+            .value
+            .trim();
+
+    const mesajAlani =
+        document.getElementById(
+            "doktorMesajAlani"
+        );
+
+    const buton =
+        event.currentTarget.querySelector(
+            "button[type='submit']"
+        );
+
+    buton.disabled = true;
+    buton.textContent = "Kaydediliyor...";
+
+    try {
+        const cevap = await apiIstegi(
+            "/api/Doctors/hesapli",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    eposta: eposta,
+                    parola: parola,
+                    departmentId: departmentId,
+                    doktorAd: doktorAd,
+                    doktorSoyad: doktorSoyad,
+
+                    telefonNumarasi:
+                        telefonNumarasi || null,
+
+                    uzmanlikAlani:
+                        uzmanlikAlani || null
+                })
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Doktor oluşturulamadı.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+
+                    if (hataVerisi.errors) {
+                        const dogrulamaHatalari =
+                            Object.values(
+                                hataVerisi.errors
+                            )
+                                .flat()
+                                .join(" ");
+
+                        if (dogrulamaHatalari) {
+                            hataMesaji =
+                                dogrulamaHatalari;
+                        }
+                    }
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        mesajAlani.textContent =
+            "Doktor ve kullanıcı hesabı " +
+            "başarıyla oluşturuldu.";
+
+        mesajAlani.className =
+            "mesaj basarili";
+
+        setTimeout(() => {
+            doktorlariGetir();
+        }, 800);
+    }
+    catch (hata) {
+        mesajAlani.textContent =
+            hata.message;
+
+        mesajAlani.className =
+            "mesaj hata";
+    }
+    finally {
+        buton.disabled = false;
+        buton.textContent =
+            "Doktoru Kaydet";
+    }
+}
+async function doktorSil(doktorId) {
+    const onaylandiMi = confirm(
+        "Bu doktoru silmek istediğinize emin misiniz?"
+    );
+
+    if (!onaylandiMi) {
+        return;
+    }
+
+    try {
+        const cevap = await apiIstegi(
+            `/api/Doctors/${doktorId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Doktor silinemedi.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        alert("Doktor başarıyla silindi.");
+
+        await doktorlariGetir();
+    }
+    catch (hata) {
+        alert(hata.message);
+    }
+}
+async function hastalariGetir(aramaMetni = "") {
     icerikAlani.innerHTML = `
         <div class="yukleniyor">
             Hastalar yükleniyor...
@@ -424,12 +1087,16 @@ async function hastalariGetir() {
     `;
 
     try {
-        const cevap = await apiIstegi(
+        const adres =
             "/api/Hasta" +
             "?SayfaNo=1" +
             "&SayfaBoyutu=100" +
-            "&AktifMi=true"
-        );
+            "&AktifMi=true" +
+            (aramaMetni
+                ? `&Arama=${encodeURIComponent(aramaMetni)}`
+                : "");
+
+        const cevap = await apiIstegi(adres);
 
         if (!cevap.ok) {
             if (cevap.status === 403) {
@@ -446,14 +1113,93 @@ async function hastalariGetir() {
         const veri = await cevap.json();
         const hastalar = veri.kayitlar ?? veri;
 
+        const sekreterMi =
+            (rol ?? "").trim().toLowerCase() === "sekreter";
+
+        const aramaKutusu = `
+    <form id="hastaAramaFormu" class="randevu-formu">
+        <div class="form-grid">
+            <div class="form-grubu">
+                <label for="hastaAramaMetni">
+                    TC Kimlik No ile Ara
+                </label>
+
+                <input
+                    type="text"
+                    id="hastaAramaMetni"
+                    inputmode="numeric"
+                    maxlength="11"
+                    placeholder="12345678901"
+                    value="${htmlGuvenli(aramaMetni) === "-" ? "" : htmlGuvenli(aramaMetni)}">
+            </div>
+        </div>
+
+        <div class="form-islemleri">
+            <button type="submit" class="yenile-butonu">
+                Ara
+            </button>
+
+            ${aramaMetni
+                ? `
+                    <button
+                        type="button"
+                        class="iptal-butonu"
+                        onclick="hastalariGetir()">
+                        Temizle
+                    </button>
+                `
+                : ""
+            }
+        </div>
+    </form>
+`;
+
         if (!hastalar || hastalar.length === 0) {
             icerikAlani.innerHTML = `
-                <div class="bos-kayit">
-                    Kayıtlı aktif hasta bulunmuyor.
+                <div class="icerik-karti">
+                    <div class="icerik-basligi">
+                        <div>
+                            <h3>Hastalar</h3>
+                            <p>Sistemde kayıtlı aktif hastalar</p>
+                        </div>
+
+                        ${sekreterMi
+                    ? `
+                                <button
+                                    type="button"
+                                    class="yenile-butonu"
+                                    onclick="hastaOlusturmaFormunuGoster()">
+                                    Yeni Hasta
+                                </button>
+                            `
+                    : ""
+                }
+                    </div>
+
+                    ${aramaKutusu}
+
+                    <div class="bos-kayit">
+                        ${aramaMetni
+                    ? "Arama kriterine uygun hasta bulunamadı."
+                    : "Kayıtlı aktif hasta bulunmuyor."
+                }
+                    </div>
                 </div>
             `;
 
-            return;
+            document
+                .getElementById("hastaAramaFormu")
+                .addEventListener("submit", hastaAra);
+
+            
+            document
+    .getElementById("hastaAramaMetni")
+    .addEventListener("input", (event) => {
+        event.target.value =
+            event.target.value
+                .replace(/[^0-9]/g, "")
+                .slice(0, 11);
+    });
         }
 
         const satirlar = hastalar
@@ -498,6 +1244,20 @@ async function hastalariGetir() {
                     }
                             </span>
                         </td>
+
+                        ${sekreterMi
+                        ? `
+                                <td>
+                                    <button
+                                        type="button"
+                                        class="iptal-butonu"
+                                        onclick="hastaSil(${hasta.id})">
+                                        Sil
+                                    </button>
+                                </td>
+                            `
+                        : ""
+                    }
                     </tr>
                 `;
             })
@@ -511,16 +1271,36 @@ async function hastalariGetir() {
 
                         <p>
                             Sistemde kayıtlı aktif hastalar
+                            ${aramaMetni
+                ? ` — "${htmlGuvenli(aramaMetni)}" için ${hastalar.length} sonuç`
+                : ""
+            }
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        class="yenile-butonu"
-                        onclick="hastalariGetir()">
-                        Yenile
-                    </button>
+                    <div class="baslik-butonlari">
+                        ${sekreterMi
+                ? `
+                                <button
+                                    type="button"
+                                    class="yenile-butonu"
+                                    onclick="hastaOlusturmaFormunuGoster()">
+                                    Yeni Hasta
+                                </button>
+                            `
+                : ""
+            }
+
+                        <button
+                            type="button"
+                            class="yenile-butonu"
+                            onclick="hastalariGetir()">
+                            Yenile
+                        </button>
+                    </div>
                 </div>
+
+                ${aramaKutusu}
 
                 <div class="tablo-kapsayici">
                     <table class="veri-tablosu">
@@ -534,6 +1314,7 @@ async function hastalariGetir() {
                                 <th>Doğum tarihi</th>
                                 <th>Telefon</th>
                                 <th>Durum</th>
+                                ${sekreterMi ? "<th>İşlem</th>" : ""}
                             </tr>
                         </thead>
 
@@ -544,6 +1325,18 @@ async function hastalariGetir() {
                 </div>
             </div>
         `;
+
+        document
+            .getElementById("hastaAramaFormu")
+            .addEventListener("submit", hastaAra);
+        document
+            .getElementById("hastaAramaMetni")
+            .addEventListener("input", (event) => {
+                event.target.value =
+                    event.target.value
+                        .replace(/[^0-9]/g, "")
+                        .slice(0, 11);
+            });
     }
     catch (hata) {
         icerikAlani.innerHTML = `
@@ -554,7 +1347,372 @@ async function hastalariGetir() {
     }
 }
 
-async function randevulariGetir() {
+
+function hastaAra(event) {
+    event.preventDefault();
+
+    const aramaMetni =
+        document
+            .getElementById("hastaAramaMetni")
+            .value
+            .trim();
+
+    if (aramaMetni && !/^[0-9]{11}$/.test(aramaMetni)) {
+        alert("TC kimlik numarası 11 haneli olmalıdır.");
+        return;
+    }
+
+    hastalariGetir(aramaMetni);
+}
+function hastaOlusturmaFormunuGoster() {
+    icerikAlani.innerHTML = `
+        <div class="icerik-karti">
+            <div class="icerik-basligi">
+                <div>
+                    <h3>Yeni Hasta</h3>
+
+                    <p>
+                        Hastanın hesap ve profil
+                        bilgilerini giriniz.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="yenile-butonu"
+                    onclick="hastalariGetir()">
+                    Listeye Dön
+                </button>
+            </div>
+
+            <form
+                id="hastaOlusturmaFormu"
+                class="randevu-formu">
+
+                <div class="form-grid">
+                    <div class="form-grubu">
+                        <label for="hastaEposta">
+                            E-posta
+                        </label>
+
+                        <input
+                            type="email"
+                            id="hastaEposta"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaParola">
+                            Parola
+                        </label>
+
+                        <input
+                            type="password"
+                            id="hastaParola"
+                            minlength="8"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaAdi">
+                            Hasta adı
+                        </label>
+
+                        <input
+                            type="text"
+                            id="hastaAdi"
+                            maxlength="25"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaSoyadi">
+                            Hasta soyadı
+                        </label>
+
+                        <input
+                            type="text"
+                            id="hastaSoyadi"
+                            maxlength="40"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaKimlik">
+                            Kimlik numarası
+                        </label>
+
+                        <input
+                            type="text"
+                            id="hastaKimlik"
+                            maxlength="11"
+                            pattern="[0-9]{11}"
+                            placeholder="12345678901"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaDogumTarihi">
+                            Doğum tarihi
+                        </label>
+
+                        <input
+                            type="date"
+                            id="hastaDogumTarihi"
+                            max="${new Date().toLocaleDateString('sv-SE')}"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaTelefon">
+                            Telefon numarası
+                        </label>
+
+                        <input
+                            type="text"
+                            id="hastaTelefon"
+                            maxlength="11"
+                            pattern="[0-9]{11}"
+                            placeholder="05551234567">
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="hastaAdres">
+                            Adres
+                        </label>
+
+                        <input
+                            type="text"
+                            id="hastaAdres"
+                            maxlength="200">
+                    </div>
+                </div>
+
+                <div class="form-islemleri">
+                    <button
+                        type="submit"
+                        class="yenile-butonu">
+                        Hastayı Kaydet
+                    </button>
+                </div>
+
+                <div
+                    id="hastaMesajAlani"
+                    class="mesaj gizli">
+                </div>
+            </form>
+        </div>
+    `;
+
+    document
+        .getElementById("hastaOlusturmaFormu")
+        .addEventListener(
+            "submit",
+            hastaOlustur
+        );
+}
+
+
+async function hastaOlustur(event) {
+    event.preventDefault();
+
+    const eposta =
+        document
+            .getElementById("hastaEposta")
+            .value
+            .trim();
+
+    const parola =
+        document
+            .getElementById("hastaParola")
+            .value;
+
+    const ad =
+        document
+            .getElementById("hastaAdi")
+            .value
+            .trim();
+
+    const soyad =
+        document
+            .getElementById("hastaSoyadi")
+            .value
+            .trim();
+
+    const kimlikNumarasi =
+        document
+            .getElementById("hastaKimlik")
+            .value
+            .trim();
+
+    const dogumTarihi =
+        document
+            .getElementById("hastaDogumTarihi")
+            .value;
+
+    const telefonNumarasi =
+        document
+            .getElementById("hastaTelefon")
+            .value
+            .trim();
+
+    const adres =
+        document
+            .getElementById("hastaAdres")
+            .value
+            .trim();
+
+    const mesajAlani =
+        document.getElementById(
+            "hastaMesajAlani"
+        );
+
+    const buton =
+        event.currentTarget.querySelector(
+            "button[type='submit']"
+        );
+
+    buton.disabled = true;
+    buton.textContent = "Kaydediliyor...";
+
+    try {
+        const cevap = await apiIstegi(
+            "/api/Hasta/hesapli",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    eposta: eposta,
+                    parola: parola,
+                    ad: ad,
+                    soyad: soyad,
+                    kimlikNumarasi: kimlikNumarasi,
+                    dogumTarihi: dogumTarihi,
+
+                    telefonNumarasi:
+                        telefonNumarasi || null,
+
+                    adres: adres || null
+                })
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Hasta oluşturulamadı.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+
+                    if (hataVerisi.errors) {
+                        const dogrulamaHatalari =
+                            Object.values(
+                                hataVerisi.errors
+                            )
+                                .flat()
+                                .join(" ");
+
+                        if (dogrulamaHatalari) {
+                            hataMesaji =
+                                dogrulamaHatalari;
+                        }
+                    }
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        mesajAlani.textContent =
+            "Hasta ve kullanıcı hesabı " +
+            "başarıyla oluşturuldu.";
+
+        mesajAlani.className =
+            "mesaj basarili";
+
+        setTimeout(() => {
+            hastalariGetir();
+        }, 800);
+    }
+    catch (hata) {
+        mesajAlani.textContent =
+            hata.message;
+
+        mesajAlani.className =
+            "mesaj hata";
+    }
+    finally {
+        buton.disabled = false;
+        buton.textContent =
+            "Hastayı Kaydet";
+    }
+}
+async function hastaSil(hastaId) {
+    const onaylandiMi = confirm(
+        "Bu hastayı silmek istediğinize emin misiniz?"
+    );
+
+    if (!onaylandiMi) {
+        return;
+    }
+
+    try {
+        const cevap = await apiIstegi(
+            `/api/Hasta/${hastaId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Hasta silinemedi.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+                }
+                catch {
+                    hataMesaji =
+                        hataMetni.split(/\r?\n/)[0];
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        alert("Hasta başarıyla silindi.");
+
+        await hastalariGetir();
+    }
+    catch (hata) {
+        alert(hata.message);
+    }
+}
+async function randevulariGetir(filtreler = {}) {
     icerikAlani.innerHTML = `
         <div class="yukleniyor">
             Randevular yükleniyor...
@@ -586,11 +1744,15 @@ async function randevulariGetir() {
 
         const randevular =
             veri.kayitlar ?? veri;
+
+        const rolKucuk =
+            (rol ?? "").trim().toLowerCase();
+
+        const doktorMu = rolKucuk === "doktor";
+
         if (!randevular || randevular.length === 0) {
             const randevuAlabilirMi =
-                ["sekreter", "hasta"].includes(
-                    (rol ?? "").trim().toLowerCase()
-                );
+                ["sekreter", "hasta"].includes(rolKucuk);
 
             icerikAlani.innerHTML = `
         <div class="bos-kayit">
@@ -615,52 +1777,286 @@ async function randevulariGetir() {
             return;
         }
 
-        const satirlar = randevular
+        // Doktor rolü için istemci tarafında filtreleme.
+        let gosterilecekRandevular = randevular;
+
+        if (doktorMu) {
+            gosterilecekRandevular = randevular.filter(
+                (randevu) => {
+                    if (filtreler.hastaAdi) {
+                        const aranan =
+                            filtreler.hastaAdi
+                                .trim()
+                                .toLocaleLowerCase("tr-TR");
+
+                        const hastaAdi =
+                            (randevu.hastaAdiSoyadi || "")
+                                .toLocaleLowerCase("tr-TR");
+
+                        if (!hastaAdi.includes(aranan)) {
+                            return false;
+                        }
+                    }
+
+                    if (
+                        filtreler.durum !== undefined &&
+                        filtreler.durum !== ""
+                    ) {
+                        if (
+                            String(randevu.durum) !==
+                            String(filtreler.durum)
+                        ) {
+                            return false;
+                        }
+                    }
+
+                    if (filtreler.tarih) {
+                        const randevuTarihi =
+                            new Date(randevu.baslangicZamani)
+                                .toLocaleDateString('sv-SE');
+
+                        if (randevuTarihi !== filtreler.tarih) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            );
+        }
+
+        const filtreAktifMi =
+            !!(filtreler.hastaAdi ||
+                filtreler.durum ||
+                filtreler.tarih);
+
+        const doktorFiltreFormu = doktorMu
+            ? `
+                <form
+                    id="doktorRandevuFiltreFormu"
+                    class="randevu-formu">
+
+                    <div class="form-grid">
+                        <div class="form-grubu">
+                            <label for="filtreHastaAdi">
+                                Hasta adı soyadı
+                            </label>
+
+                            <input
+                                type="text"
+                                id="filtreHastaAdi"
+                                value="${filtreler.hastaAdi
+                ? htmlGuvenli(filtreler.hastaAdi)
+                : ""}">
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="filtreDurum">
+                                Durum
+                            </label>
+
+                            <select id="filtreDurum">
+                                <option value="">
+                                    Tümü
+                                </option>
+
+                                <option
+                                    value="2"
+                                    ${filtreler.durum === "2"
+                ? "selected"
+                : ""}>
+                                    Planlandı
+                                </option>
+
+                                <option
+                                    value="1"
+                                    ${filtreler.durum === "1"
+                ? "selected"
+                : ""}>
+                                    Tamamlandı
+                                </option>
+
+                                <option
+                                    value="0"
+                                    ${filtreler.durum === "0"
+                ? "selected"
+                : ""}>
+                                    İptal Edildi
+                                </option>
+
+                                <option
+                                    value="3"
+                                    ${filtreler.durum === "3"
+                ? "selected"
+                : ""}>
+                                    Hasta Gelmedi
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-grubu">
+                            <label for="filtreTarih">
+                                Tarih
+                            </label>
+
+                            <input
+                                type="date"
+                                id="filtreTarih"
+                                value="${filtreler.tarih || ""}">
+                        </div>
+                    </div>
+
+                    <div class="form-islemleri">
+                        <button
+                            type="submit"
+                            class="yenile-butonu">
+                            Randevu Ara
+                        </button>
+
+                        ${filtreAktifMi
+                ? `
+                                <button
+                                    type="button"
+                                    class="iptal-butonu"
+                                    onclick="randevulariGetir()">
+                                    Temizle
+                                </button>
+                            `
+                : ""
+            }
+                    </div>
+                </form>
+            `
+            : "";
+
+        if (gosterilecekRandevular.length === 0) {
+            icerikAlani.innerHTML = `
+                <div class="icerik-karti">
+                    <div class="icerik-basligi">
+                        <div>
+                            <h3>Randevularım</h3>
+                            <p>Size ait randevu kayıtları</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="yenile-butonu"
+                            onclick="randevulariGetir()">
+                            Yenile
+                        </button>
+                    </div>
+
+                    ${doktorFiltreFormu}
+
+                    <div class="bos-kayit">
+                        Arama kriterlerine uygun randevu
+                        bulunamadı.
+                    </div>
+                </div>
+            `;
+
+            if (doktorMu) {
+                document
+                    .getElementById(
+                        "doktorRandevuFiltreFormu"
+                    )
+                    .addEventListener(
+                        "submit",
+                        (event) => {
+                            event.preventDefault();
+
+                            randevulariGetir({
+                                hastaAdi:
+                                    document
+                                        .getElementById(
+                                            "filtreHastaAdi"
+                                        )
+                                        .value
+                                        .trim(),
+
+                                durum:
+                                    document
+                                        .getElementById(
+                                            "filtreDurum"
+                                        )
+                                        .value,
+
+                                tarih:
+                                    document
+                                        .getElementById(
+                                            "filtreTarih"
+                                        )
+                                        .value
+                            });
+                        }
+                    );
+            }
+
+            return;
+        }
+
+        const satirlar = gosterilecekRandevular
             .map((randevu) => {
                 return `
                     <tr>
-                        <td>
-                            ${htmlGuvenli(
-                    randevu.doktorAdiSoyadi
-                    )}
-                        </td>
+                        ${doktorMu
+                        ? ""
+                        : `
+                            <td>
+                                ${htmlGuvenli(
+                            randevu.doktorAdiSoyadi
+                        )}
+                            </td>
+                        `
+                    }
                         <td>
     ${htmlGuvenli(
-                        randevu.doktorUzmanlikAlani ||
+                        randevu.hastaAdiSoyadi ||
                         "Belirtilmemiş"
-    )}
+                    )}
 </td>
+                        ${doktorMu
+                        ? ""
+                        : `
+                            <td>
+                                ${htmlGuvenli(
+                            randevu.doktorUzmanlikAlani ||
+                            "Belirtilmemiş"
+                        )}
+                            </td>
+                        `
+                    }
 
                         <td>
                             ${tarihYaz(
-                    randevu.baslangicZamani
-                )}
+                        randevu.baslangicZamani
+                    )}
                         </td>
 
                         <td>
                             ${saatYaz(
-                    randevu.baslangicZamani
-                )}
+                        randevu.baslangicZamani
+                    )}
                         </td>
 
                         <td>
                             ${saatYaz(
-                    randevu.bitisZamani
-                )}
+                        randevu.bitisZamani
+                    )}
                         </td>
 
                         <td>
                             <span class="durum-etiketi">
                                 ${htmlGuvenli(
-                    randevu.durumAdi
-                )}
+                        randevu.durumAdi
+                    )}
                             </span>
                         </td>
-                        ${(rol ?? "").trim().toLowerCase() === "sekreter"
+                        ${rolKucuk === "sekreter"
                         ? `
         <td>
            ${randevu.durum === 2
-                        ? `
+                            ? `
         <div class="islem-butonlari">
             <button
                 type="button"
@@ -677,12 +2073,12 @@ async function randevulariGetir() {
             </button>
         </div>
     `
-                        : "-"
-}
+                            : "-"
+                        }
         </td>
     `
                         : ""
-                    }${(rol ?? "").trim().toLowerCase() === "doktor"
+                    }${rolKucuk === "doktor"
                         ? `
         <td>
             ${randevu.durum === 2
@@ -715,7 +2111,26 @@ async function randevulariGetir() {
         </td>
     `
                         : ""
-}
+                    }${rolKucuk === "hasta"
+                        ? `
+        <td>
+            ${randevu.durum === 2 &&
+                            (new Date(randevu.baslangicZamani).getTime() -
+                                Date.now()) > 60 * 60 * 1000
+                            ? `
+                    <button
+                        type="button"
+                        class="iptal-butonu"
+                        onclick="randevuHastaKendiIptalEt(${randevu.id})">
+                        İptal Et
+                    </button>
+                `
+                            : "-"
+                        }
+        </td>
+    `
+                        : ""
+                    }
 
                     </tr>
                 `;
@@ -730,13 +2145,15 @@ async function randevulariGetir() {
 
                         <p>
                             Size ait randevu kayıtları
+                            ${doktorMu && filtreAktifMi
+                ? ` — ${gosterilecekRandevular.length} sonuç`
+                : ""
+            }
                         </p>
                     </div>
 
                     <div class="baslik-butonlari">
-${["sekreter", "hasta"].includes(
-    (rol ?? "").trim().toLowerCase()
-)
+${["sekreter", "hasta"].includes(rolKucuk)
                 ? `
         <button
             type="button"
@@ -746,13 +2163,18 @@ ${["sekreter", "hasta"].includes(
         </button>
     `
                 : ""
-}
-    <button
-    type="button"
-    class="yenile-butonu"
-    onclick="randevuFiltreFormunuGoster()">
-    Randevu Ara
-</button>
+            }
+    ${doktorMu
+                ? ""
+                : `
+        <button
+            type="button"
+            class="yenile-butonu"
+            onclick="randevuFiltreFormunuGoster()">
+            Randevu Ara
+        </button>
+    `
+            }
     <button
         type="button"
         class="yenile-butonu"
@@ -762,22 +2184,25 @@ ${["sekreter", "hasta"].includes(
 </div>
                 </div>
 
+                ${doktorFiltreFormu}
+
                 <div class="tablo-kapsayici">
                     <table class="veri-tablosu">
                         <thead>
                             <tr>
-                               <th>Doktor</th>
-<th>Doktorun Dalı</th>
+                               ${doktorMu ? "" : "<th>Doktor</th>"}
+                               <th>Hasta</th>
+                               ${doktorMu ? "" : "<th>Doktorun Dalı</th>"}
 <th>Tarih</th>
 <th>Başlangıç</th>
 <th>Bitiş</th>
 <th>Durum</th>
-                              ${["sekreter", "doktor"].includes(
-                                  (rol ?? "").trim().toLowerCase()
-                              )
+                              ${["sekreter", "doktor", "hasta"].includes(
+                rolKucuk
+            )
                 ? "<th>İşlem</th>"
                 : ""
-}
+            }
 
                             </tr>
                         </thead>
@@ -789,6 +2214,41 @@ ${["sekreter", "hasta"].includes(
                 </div>
             </div>
         `;
+
+        if (doktorMu) {
+            document
+                .getElementById("doktorRandevuFiltreFormu")
+                .addEventListener(
+                    "submit",
+                    (event) => {
+                        event.preventDefault();
+
+                        randevulariGetir({
+                            hastaAdi:
+                                document
+                                    .getElementById(
+                                        "filtreHastaAdi"
+                                    )
+                                    .value
+                                    .trim(),
+
+                            durum:
+                                document
+                                    .getElementById(
+                                        "filtreDurum"
+                                    )
+                                    .value,
+
+                            tarih:
+                                document
+                                    .getElementById(
+                                        "filtreTarih"
+                                    )
+                                    .value
+                        });
+                    }
+                );
+        }
     }
     catch (hata) {
         icerikAlani.innerHTML = `
@@ -947,29 +2407,47 @@ async function randevuOlusturmaFormunuGoster() {
     `
 }
 
-                        <div class="form-grubu">
-                            <label for="randevuBaslangic">
-                                Başlangıç zamanı
-                            </label>
+                       <div class="form-grubu">
+    <label for="randevuTarihi">
+        Randevu tarihi
+    </label>
 
-                            <input
-    type="datetime-local"
-    id="randevuBaslangic"
-    step="1800"
-    required>
-                        </div>
+     <input
+        type="date"
+        id="randevuTarihi"
+        min="${new Date().toLocaleDateString('sv-SE')}"
+        required>
+</div>
 
-                        <div class="form-grubu">
-                            <label for="randevuBitis">
-                                Bitiş zamanı
-                            </label>
+<div class="form-grubu">
+    <label for="randevuSaati">
+        Başlangıç saati
+    </label>
 
-                           <input
-    type="datetime-local"
-    id="randevuBitis"
-    step="1800"
-    required>
-                        </div>
+    <select id="randevuSaati" required>
+        <option value="">Saat seçiniz</option>
+        <option value="08:00">08:00</option>
+        <option value="08:30">08:30</option>
+        <option value="09:00">09:00</option>
+        <option value="09:30">09:30</option>
+        <option value="10:00">10:00</option>
+        <option value="10:30">10:30</option>
+        <option value="11:00">11:00</option>
+        <option value="11:30">11:30</option>
+        <option value="12:00">12:00</option>
+        <option value="12:30">12:30</option>
+        <option value="13:00">13:00</option>
+        <option value="13:30">13:30</option>
+        <option value="14:00">14:00</option>
+        <option value="14:30">14:30</option>
+        <option value="15:00">15:00</option>
+        <option value="15:30">15:30</option>
+        <option value="16:00">16:00</option>
+        <option value="16:30">16:30</option>
+    </select>
+</div>
+
+                       
                     </div>
 
                     <div class="form-islemleri">
@@ -994,44 +2472,67 @@ async function randevuOlusturmaFormunuGoster() {
                 "submit",
                 randevuOlustur
         );
-        const baslangicAlani =
-            document.getElementById(
-                "randevuBaslangic"
-            );
+        const tarihAlani =
+            document.getElementById("randevuTarihi");
 
-        const bitisAlani =
-            document.getElementById(
-                "randevuBitis"
-            );
+        const saatAlani =
+            document.getElementById("randevuSaati");
 
-        function saatSiniriniAyarla() {
-            const secilenTarih =
-                baslangicAlani.value.slice(0, 10);
+        const simdi = new Date();
 
-            if (!secilenTarih) {
-                return;
+        const bugun =
+            `${simdi.getFullYear()}-` +
+            `${String(simdi.getMonth() + 1).padStart(2, "0")}-` +
+            `${String(simdi.getDate()).padStart(2, "0")}`;
+
+        tarihAlani.min = bugun;
+
+        function gecmisSaatleriKapat() {
+            const secilenTarih = tarihAlani.value;
+            const suAn = new Date();
+
+            Array.from(saatAlani.options)
+                .forEach((secenek) => {
+                    if (!secenek.value) {
+                        return;
+                    }
+
+                    const secenekZamani =
+                        new Date(
+                            `${secilenTarih}T` +
+                            `${secenek.value}:00`
+                        );
+
+                    const gecmisMi =
+                        secilenTarih === bugun &&
+                        secenekZamani <= suAn;
+
+                    secenek.disabled = gecmisMi;
+
+                    secenek.textContent =
+                        gecmisMi
+                            ? `${secenek.value} (Geçti)`
+                            : secenek.value;
+                });
+
+            if (
+                saatAlani.selectedOptions[0]
+                    ?.disabled
+            ) {
+                saatAlani.value = "";
             }
-
-            // Randevu başlangıcı en erken 08:00 olabilir.
-            baslangicAlani.min =
-                `${secilenTarih}T08:00`;
-
-            // Başlangıç 17:00 olamaz.
-            baslangicAlani.max =
-                `${secilenTarih}T16:59`;
-
-            bitisAlani.min =
-                baslangicAlani.value;
-
-            // Randevu en geç 17:00'de bitebilir.
-            bitisAlani.max =
-                `${secilenTarih}T17:00`;
         }
 
-        baslangicAlani.addEventListener(
+        tarihAlani.addEventListener(
             "change",
-            saatSiniriniAyarla
+            gecmisSaatleriKapat
         );
+
+        saatAlani.addEventListener(
+            "focus",
+            gecmisSaatleriKapat
+        );
+       
     }
     catch (hata) {
         icerikAlani.innerHTML = `
@@ -1059,32 +2560,36 @@ async function randevuOlustur(event) {
         hastaAlani
             ? Number(hastaAlani.value)
             : null;
-
-    const baslangicDegeri =
+    const tarihDegeri =
         document
-            .getElementById("randevuBaslangic")
+            .getElementById("randevuTarihi")
             .value;
 
-    const bitisDegeri =
+    const saatDegeri =
         document
-            .getElementById("randevuBitis")
+            .getElementById("randevuSaati")
             .value;
-
-    const baslangicZamani =
-        new Date(baslangicDegeri);
-
-    const bitisZamani =
-        new Date(bitisDegeri);
 
     const mesajAlani =
         document.getElementById(
             "randevuMesajAlani"
         );
 
-    if (bitisZamani <= baslangicZamani) {
+    const baslangicZamani =
+        new Date(
+            `${tarihDegeri}T${saatDegeri}:00`
+        );
+
+    const bitisZamani =
+        new Date(
+            baslangicZamani.getTime() +
+            30 * 60 * 1000
+        );
+    const simdi = new Date();
+
+    if (baslangicZamani <= simdi) {
         mesajAlani.textContent =
-            "Bitiş zamanı başlangıç zamanından " +
-            "sonra olmalıdır.";
+            "Geçmiş tarih veya saate randevu oluşturulamaz.";
 
         mesajAlani.className = "mesaj hata";
         return;
@@ -1271,6 +2776,61 @@ async function randevuIptalEt(randevuId) {
         alert(hata.message);
     }
 }
+async function randevuHastaKendiIptalEt(randevuId) {
+    const onaylandiMi = confirm(
+        "Randevuyu iptal etmek istediğinize emin misiniz?"
+    );
+
+    if (!onaylandiMi) {
+        return;
+    }
+
+    try {
+        const cevap = await apiIstegi(
+            `/api/Randevu/${randevuId}/durum`,
+            {
+                method: "PATCH",
+
+                body: JSON.stringify({
+                    durum: 0,
+                    iptalNedeni: "Hasta tarafından iptal edildi."
+                })
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Randevu iptal edilemedi.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+                }
+                catch {
+                    hataMesaji = hataMetni;
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        alert("Randevu başarıyla iptal edildi.");
+
+        await randevulariGetir();
+    }
+    catch (hata) {
+        alert(hata.message);
+    }
+}
 async function randevuDuzenlemeFormunuGoster(randevuId) {
     icerikAlani.innerHTML = `
         <div class="yukleniyor">
@@ -1311,6 +2871,8 @@ async function randevuDuzenlemeFormunuGoster(randevuId) {
         }
 
         const randevu = await randevuCevabi.json();
+        const mevcutZaman =
+            tarihVeSaatAyir(randevu.baslangicZamani);
         const doktorVerisi = await doktorCevabi.json();
         const hastaVerisi = await hastaCevabi.json();
 
@@ -1406,34 +2968,48 @@ async function randevuDuzenlemeFormunuGoster(randevuId) {
                                 ${hastaSecenekleri}
                             </select>
                         </div>
+<div class="form-grubu">
+    <label for="duzenleTarihi">
+        Randevu tarihi
+    </label>
 
-                        <div class="form-grubu">
-                            <label for="duzenleBaslangic">
-                                Başlangıç zamanı
-                            </label>
+    <input
+        type="date"
+        id="duzenleTarihi"
+        min="${new Date().toLocaleDateString('sv-SE')}"
+        value="${mevcutZaman.tarih}"
+        required>
+</div>
 
-                            <input
-                                type="datetime-local"
-                                id="duzenleBaslangic"
-                                value="${tarihSaatInputDegeri(
-            randevu.baslangicZamani
-        )}"
-                                required>
-                        </div>
+<div class="form-grubu">
+    <label for="duzenleSaati">
+        Başlangıç saati
+    </label>
 
-                        <div class="form-grubu">
-                            <label for="duzenleBitis">
-                                Bitiş zamanı
-                            </label>
+    <select id="duzenleSaati" required>
+        <option value="">Saat seçiniz</option>
+        <option value="08:00">08:00</option>
+        <option value="08:30">08:30</option>
+        <option value="09:00">09:00</option>
+        <option value="09:30">09:30</option>
+        <option value="10:00">10:00</option>
+        <option value="10:30">10:30</option>
+        <option value="11:00">11:00</option>
+        <option value="11:30">11:30</option>
+        <option value="12:00">12:00</option>
+        <option value="12:30">12:30</option>
+        <option value="13:00">13:00</option>
+        <option value="13:30">13:30</option>
+        <option value="14:00">14:00</option>
+        <option value="14:30">14:30</option>
+        <option value="15:00">15:00</option>
+        <option value="15:30">15:30</option>
+        <option value="16:00">16:00</option>
+        <option value="16:30">16:30</option>
+    </select>
+</div>
 
-                            <input
-                                type="datetime-local"
-                                id="duzenleBitis"
-                                value="${tarihSaatInputDegeri(
-            randevu.bitisZamani
-        )}"
-                                required>
-                        </div>
+                      
                     </div>
 
                     <div class="form-islemleri">
@@ -1451,7 +3027,65 @@ async function randevuDuzenlemeFormunuGoster(randevuId) {
                 </form>
             </div>
         `;
+        document.getElementById("duzenleSaati").value =
+            mevcutZaman.saat;
 
+        const duzenleTarihAlani =
+            document.getElementById("duzenleTarihi");
+
+        const duzenleSaatAlani =
+            document.getElementById("duzenleSaati");
+
+        const duzenleBugun =
+            new Date().toLocaleDateString('sv-SE');
+
+        function duzenleGecmisSaatleriKapat() {
+            const secilenTarih = duzenleTarihAlani.value;
+            const suAn = new Date();
+
+            Array.from(duzenleSaatAlani.options)
+                .forEach((secenek) => {
+                    if (!secenek.value) {
+                        return;
+                    }
+
+                    const secenekZamani =
+                        new Date(
+                            `${secilenTarih}T` +
+                            `${secenek.value}:00`
+                        );
+
+                    const gecmisMi =
+                        secilenTarih === duzenleBugun &&
+                        secenekZamani <= suAn;
+
+                    secenek.disabled = gecmisMi;
+
+                    secenek.textContent =
+                        gecmisMi
+                            ? `${secenek.value} (Geçti)`
+                            : secenek.value;
+                });
+
+            if (duzenleSaatAlani.selectedOptions[0]?.disabled) {
+                duzenleSaatAlani.value = "";
+            }
+        }
+
+        duzenleTarihAlani.addEventListener(
+            "change", duzenleGecmisSaatleriKapat
+        );
+        duzenleTarihAlani.addEventListener(
+            "input", duzenleGecmisSaatleriKapat
+        );
+        duzenleSaatAlani.addEventListener(
+            "focus", duzenleGecmisSaatleriKapat
+        );
+        duzenleSaatAlani.addEventListener(
+            "click", duzenleGecmisSaatleriKapat
+        );
+
+        duzenleGecmisSaatleriKapat();
         document
             .getElementById("randevuGuncellemeFormu")
             .addEventListener("submit", (event) => {
@@ -1479,21 +3113,38 @@ async function randevuGuncelle(event, randevuId) {
         document.getElementById("duzenleHastaId").value
     );
 
-    const baslangicZamani = new Date(
-        document.getElementById("duzenleBaslangic").value
-    );
+    const tarihDegeri =
+        document.getElementById("duzenleTarihi").value;
 
-    const bitisZamani = new Date(
-        document.getElementById("duzenleBitis").value
-    );
+    const saatDegeri =
+        document.getElementById("duzenleSaati").value;
 
     const mesajAlani = document.getElementById(
         "randevuGuncellemeMesaji"
     );
 
-    if (bitisZamani <= baslangicZamani) {
+    if (!tarihDegeri || !saatDegeri) {
         mesajAlani.textContent =
-            "Bitiş zamanı başlangıçtan sonra olmalıdır.";
+            "Randevu tarihi ve saati seçilmelidir.";
+
+        mesajAlani.className = "mesaj hata";
+        return;
+    }
+
+    const baslangicZamani = new Date(
+        `${tarihDegeri}T${saatDegeri}:00`
+    );
+
+    const bitisZamani = new Date(
+        baslangicZamani.getTime() +
+        30 * 60 * 1000
+    );
+
+    const simdi = new Date();
+
+    if (baslangicZamani <= simdi) {
+        mesajAlani.textContent =
+            "Geçmiş tarih veya saate randevu güncellenemez.";
 
         mesajAlani.className = "mesaj hata";
         return;
@@ -1570,6 +3221,20 @@ function tarihSaatInputDegeri(tarihDegeri) {
     return new Date(tarih.getTime() - saatFarki)
         .toISOString()
         .slice(0, 16);
+}
+function tarihVeSaatAyir(tarihDegeri) {
+    const tarih = new Date(tarihDegeri);
+
+    const yerelTarih =
+        `${tarih.getFullYear()}-` +
+        `${String(tarih.getMonth() + 1).padStart(2, "0")}-` +
+        `${String(tarih.getDate()).padStart(2, "0")}`;
+
+    const yerelSaat =
+        `${String(tarih.getHours()).padStart(2, "0")}:` +
+        `${String(tarih.getMinutes()).padStart(2, "0")}`;
+
+    return { tarih: yerelTarih, saat: yerelSaat };
 }
 async function randevuFiltreFormunuGoster() {
     icerikAlani.innerHTML = `

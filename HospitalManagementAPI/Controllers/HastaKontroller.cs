@@ -5,6 +5,7 @@ using HospitalManagementAPI.DTOs.Common;
 using HospitalManagementAPI.DTOs.Patients;
 using HospitalManagementAPI.Uzantilar;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 namespace HospitalManagementAPI.Controllers
 {
@@ -13,10 +14,13 @@ namespace HospitalManagementAPI.Controllers
     public class HastaController : ControllerBase
     {
         private readonly IHastaServisi _hastaServisi;
-
-        public HastaController(IHastaServisi hastaServisi)
+        private readonly IPasswordHasher<KullaniciHesabi> _parolaHasher;
+        public HastaController(
+     IHastaServisi hastaServisi,
+     IPasswordHasher<KullaniciHesabi> parolaHasher)
         {
             _hastaServisi = hastaServisi;
+            _parolaHasher = parolaHasher;
         }
         [Authorize(
         Roles = nameof(KullaniciRolu.Doktor) +
@@ -56,6 +60,56 @@ namespace HospitalManagementAPI.Controllers
                 };
 
             return Ok(cevap);
+        }
+        [Authorize(Roles = nameof(KullaniciRolu.Sekreter))]
+        [HttpPost("hesapli")]
+        public async Task<IActionResult> CreateWithAccount(
+    CreatePatientWithAccountDto dto)
+        {
+            var kullaniciHesabi = new KullaniciHesabi
+            {
+                Eposta = dto.Eposta,
+                Rol = KullaniciRolu.Hasta
+            };
+
+            kullaniciHesabi.ParolaHash =
+                _parolaHasher.HashPassword(
+                    kullaniciHesabi,
+                    dto.Parola);
+
+            var yeniHasta = new Hasta
+            {
+                Ad = dto.Ad,
+                Soyad = dto.Soyad,
+                KimlikNumarasi = dto.KimlikNumarasi,
+                DogumTarihi = dto.DogumTarihi,
+                TelefonNumarasi = dto.TelefonNumarasi,
+                Adres = dto.Adres,
+                KullaniciHesabi = kullaniciHesabi
+            };
+
+            var eklenenHasta =
+                await _hastaServisi
+                    .HesabiylaBirlikteEkleAsync(
+                        yeniHasta,
+                        kullaniciHesabi);
+
+            var iliskiliHasta =
+                await _hastaServisi.IdIleGetirAsync(
+                    eklenenHasta.Id);
+
+            if (iliskiliHasta is null)
+            {
+                throw new InvalidOperationException(
+                    "Eklenen hasta bilgileri alınamadı.");
+            }
+
+            var cevap = DtoyaDonustur(iliskiliHasta);
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = cevap.Id },
+                cevap);
         }
         [Authorize(Roles = nameof(KullaniciRolu.Hasta))]
         [HttpGet("ben")]

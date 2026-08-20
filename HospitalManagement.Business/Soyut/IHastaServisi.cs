@@ -15,6 +15,9 @@ namespace HospitalManagement.Business.Soyut
           CancellationToken cancellationToken = default);
         Task<Hasta?> IdIleGetirAsync(int id);
 
+        Task<Hasta> HesabiylaBirlikteEkleAsync(
+    Hasta hasta,
+    KullaniciHesabi kullaniciHesabi);
         Task<Hasta> EkleAsync(Hasta hasta);
 
         Task<bool> GuncelleAsync(Hasta hasta);

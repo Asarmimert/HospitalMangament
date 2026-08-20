@@ -44,6 +44,9 @@ namespace HospitalManagement.DataAccess.Depolar.Somut
                              $"%{temizArama}%")
                          || EF.Functions.ILike(
                              x.Soyad,
+                             $"%{temizArama}%")
+                         || EF.Functions.ILike(
+                             x.KimlikNumarasi,
                              $"%{temizArama}%"));
             }
             var toplamKayitSayisi =

@@ -247,14 +247,21 @@ namespace HospitalManagement.Business.Somut
             //        "Geçerli bir sekreter seçilmelidir.");
             //}
 
+            if (randevu.BaslangicZamani == default ||
+       randevu.BitisZamani == default)
+            {
+                throw new ArgumentException(
+                    "Randevu başlangıç ve bitiş zamanı zorunludur.");
+            }
+
             if (randevu.BitisZamani <=
-     randevu.BaslangicZamani)
+                randevu.BaslangicZamani)
             {
                 throw new ArgumentException(
                     "Randevu bitiş zamanı başlangıç zamanından sonra olmalıdır.");
             }
 
-            // Gelen UTC saatini İstanbul saatine çeviriyoruz.
+            // Gelen UTC saatlerini İstanbul saatine çeviriyoruz.
             var yerelBaslangic =
                 IstanbulSaatineCevir(
                     randevu.BaslangicZamani);
@@ -262,6 +269,15 @@ namespace HospitalManagement.Business.Somut
             var yerelBitis =
                 IstanbulSaatineCevir(
                     randevu.BitisZamani);
+
+            var yerelSimdi =
+                IstanbulSaatineCevir(DateTime.UtcNow);
+
+            if (yerelBaslangic <= yerelSimdi)
+            {
+                throw new ArgumentException(
+                    "Geçmiş tarih veya saate randevu oluşturulamaz.");
+            }
 
             // Randevu aynı gün içinde olmalı.
             // Başlangıç 17:00 olamaz, bitiş ise en fazla 17:00 olabilir.

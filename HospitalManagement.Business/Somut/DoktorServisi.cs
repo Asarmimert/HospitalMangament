@@ -145,6 +145,90 @@ namespace HospitalManagement.Business.Somut
 
             return doktor;
         }
+        public async Task<Doctor> HesabiylaBirlikteEkleAsync(
+    Doctor doktor,
+    KullaniciHesabi kullaniciHesabi)
+        {
+            if (doktor.DepartmentId < 1)
+            {
+                throw new ArgumentException(
+                    "Geçerli bir departman seçilmelidir.");
+            }
+
+            if (string.IsNullOrWhiteSpace(doktor.DoktorAd))
+            {
+                throw new ArgumentException(
+                    "Doktor adı boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(doktor.DoktorSoyad))
+            {
+                throw new ArgumentException(
+                    "Doktor soyadı boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(kullaniciHesabi.Eposta))
+            {
+                throw new ArgumentException(
+                    "E-posta boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    kullaniciHesabi.ParolaHash))
+            {
+                throw new ArgumentException(
+                    "Parola bilgisi boş olamaz.");
+            }
+
+            var departman =
+                await _departmanDeposu.IdIleGetirAsync(
+                    doktor.DepartmentId);
+
+            if (departman is null || !departman.AktifMi)
+            {
+                throw new InvalidOperationException(
+                    "Aktif bir departman bulunamadı.");
+            }
+
+            var temizEposta =
+                kullaniciHesabi.Eposta
+                    .Trim()
+                    .ToLowerInvariant();
+
+            var epostaKullaniliyorMu =
+                await _kullaniciHesabiDeposu.VarMiAsync(
+                    x => x.Eposta.ToLower() == temizEposta);
+
+            if (epostaKullaniliyorMu)
+            {
+                throw new InvalidOperationException(
+                    "Bu e-posta adresi zaten kullanılıyor.");
+            }
+
+            BilgileriTemizle(doktor);
+
+            kullaniciHesabi.Eposta = temizEposta;
+            kullaniciHesabi.Rol = KullaniciRolu.Doktor;
+            kullaniciHesabi.AktifMi = true;
+
+            kullaniciHesabi.OlusturulmaTarihi =
+                DateTime.UtcNow;
+
+            kullaniciHesabi.GuncellenmeTarihi = null;
+
+            doktor.KullaniciHesabi = kullaniciHesabi;
+            doktor.AktifMi = true;
+            doktor.OlusturulmaTarihi = DateTime.UtcNow;
+            doktor.GuncellenmeTarihi = null;
+
+            await _kullaniciHesabiDeposu
+                .EkleAsync(kullaniciHesabi);
+
+            await _genelDoktorDeposu.EkleAsync(doktor);
+            await _genelDoktorDeposu.KaydetAsync();
+
+            return doktor;
+        }
 
         public async Task<bool> GuncelleAsync(Doctor doktor)
         {

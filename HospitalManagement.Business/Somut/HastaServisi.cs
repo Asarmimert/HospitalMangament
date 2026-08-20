@@ -191,7 +191,100 @@ namespace HospitalManagement.Business.Somut
 
             return true;
         }
+        public async Task<Hasta> HesabiylaBirlikteEkleAsync(
+    Hasta hasta,
+    KullaniciHesabi kullaniciHesabi)
+        {
+            if (string.IsNullOrWhiteSpace(hasta.Ad))
+            {
+                throw new ArgumentException(
+                    "Hasta adı boş olamaz.");
+            }
 
+            if (string.IsNullOrWhiteSpace(hasta.Soyad))
+            {
+                throw new ArgumentException(
+                    "Hasta soyadı boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(hasta.KimlikNumarasi))
+            {
+                throw new ArgumentException(
+                    "Kimlik numarası boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(kullaniciHesabi.Eposta))
+            {
+                throw new ArgumentException(
+                    "E-posta boş olamaz.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    kullaniciHesabi.ParolaHash))
+            {
+                throw new ArgumentException(
+                    "Parola bilgisi boş olamaz.");
+            }
+
+            var temizEposta =
+                kullaniciHesabi.Eposta
+                    .Trim()
+                    .ToLowerInvariant();
+
+            var epostaKullaniliyorMu =
+                await _kullaniciHesabiDeposu.VarMiAsync(
+                    x => x.Eposta.ToLower() == temizEposta);
+
+            if (epostaKullaniliyorMu)
+            {
+                throw new InvalidOperationException(
+                    "Bu e-posta adresi zaten kullanılıyor.");
+            }
+
+            var kimlikKullaniliyorMu =
+                await _genelHastaDeposu.VarMiAsync(
+                    x => x.KimlikNumarasi ==
+                         hasta.KimlikNumarasi);
+
+            if (kimlikKullaniliyorMu)
+            {
+                throw new InvalidOperationException(
+                    "Bu kimlik numarasıyla kayıtlı bir hasta zaten var.");
+            }
+
+            hasta.Ad = hasta.Ad.Trim();
+            hasta.Soyad = hasta.Soyad.Trim();
+            hasta.KimlikNumarasi = hasta.KimlikNumarasi.Trim();
+
+            hasta.TelefonNumarasi =
+                string.IsNullOrWhiteSpace(hasta.TelefonNumarasi)
+                    ? null
+                    : hasta.TelefonNumarasi.Trim();
+
+            hasta.Adres =
+                string.IsNullOrWhiteSpace(hasta.Adres)
+                    ? null
+                    : hasta.Adres.Trim();
+
+            kullaniciHesabi.Eposta = temizEposta;
+            kullaniciHesabi.Rol = KullaniciRolu.Hasta;
+            kullaniciHesabi.AktifMi = true;
+            kullaniciHesabi.OlusturulmaTarihi = DateTime.UtcNow;
+            kullaniciHesabi.GuncellenmeTarihi = null;
+
+            hasta.KullaniciHesabi = kullaniciHesabi;
+            hasta.AktifMi = true;
+            hasta.OlusturulmaTarihi = DateTime.UtcNow;
+            hasta.GuncellenmeTarihi = null;
+
+            await _kullaniciHesabiDeposu
+                .EkleAsync(kullaniciHesabi);
+
+            await _genelHastaDeposu.EkleAsync(hasta);
+            await _genelHastaDeposu.KaydetAsync();
+
+            return hasta;
+        }
         private static void HastaBilgileriniDogrula(
             Hasta hasta)
         {

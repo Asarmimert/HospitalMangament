@@ -677,3 +677,19 @@ button {
     .gelmedi-butonu:hover {
         background-color: #fde68a;
     }
+
+
+.arama-formu {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+}
+
+    .arama-formu input {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+    }
