@@ -125,6 +125,10 @@ document
                 doktorlariGetir();
                 return;
             }
+            if (sayfa === "sekreter-ekle") {
+                sekreterOlusturmaFormunuGoster();
+                return;
+            }
             if (sayfa === "hastalar") {
                 hastalariGetir();
                 return;
@@ -5699,4 +5703,266 @@ async function apiIstegi(adres, secenekler = {}) {
     }
 
     return cevap;
+}
+
+function sekreterOlusturmaFormunuGoster() {
+    icerikAlani.innerHTML = `
+        <div class="icerik-karti">
+            <div class="icerik-basligi">
+                <div>
+                    <h3>Yeni Sekreter</h3>
+                    <p>
+                        Sekreter hesabı ve profil
+                        bilgilerini giriniz.
+                    </p>
+                </div>
+            </div>
+
+          <form
+    id="sekreterOlusturmaFormu"
+    onsubmit="sekreterOlustur(event); return false;"
+    autocomplete="off">
+
+                <div class="form-grid">
+                    <div class="form-grubu">
+                        <label for="sekreterAd">
+                            Ad
+                        </label>
+
+                        <input
+                            type="text"
+                            id="sekreterAd"
+                            name="yeniSekreterAd"
+                            value=""
+                            autocomplete="off"
+                            maxlength="30"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="sekreterSoyad">
+                            Soyad
+                        </label>
+
+                        <input
+                            type="text"
+                            id="sekreterSoyad"
+                            name="yeniSekreterSoyad"
+                            value=""
+                            autocomplete="off"
+                            maxlength="30"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="sekreterEposta">
+                            E-posta
+                        </label>
+
+                       <input
+    type="email"
+    id="sekreterEposta"
+    name="yeniSekreterEposta"
+    value=""
+    autocomplete="off"
+    pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
+    title="E-posta adresinde Türkçe karakter kullanılamaz."
+    oninput="this.value = this.value.replace(/[çÇğĞıİöÖşŞüÜ\s]/g, '')"
+    required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="sekreterTelefon">
+                            Telefon numarası
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="sekreterTelefon"
+                            name="yeniSekreterTelefon"
+                            value=""
+                            autocomplete="off"
+                            inputmode="numeric"
+                            maxlength="11"
+                            pattern="[0-9]{11}"
+                            placeholder="05551234567"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="sekreterParola">
+                            Parola
+                        </label>
+
+                        <input
+                            type="password"
+                            id="sekreterParola"
+                            name="yeniSekreterParola"
+                            value=""
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+
+                    <div class="form-grubu">
+                        <label for="sekreterParolaTekrar">
+                            Parola tekrar
+                        </label>
+
+                        <input
+                            type="password"
+                            id="sekreterParolaTekrar"
+                            name="yeniSekreterParolaTekrar"
+                            value=""
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-islemleri">
+                    <button
+                        type="submit"
+                        class="yenile-butonu">
+                        Sekreteri Kaydet
+                    </button>
+                </div>
+
+                <div
+                    id="sekreterMesajAlani"
+                    class="mesaj gizli">
+                </div>
+            </form>
+        </div>
+    `;
+
+   
+
+    const alanKimlikleri = [
+        "sekreterAd",
+        "sekreterSoyad",
+        "sekreterEposta",
+        "sekreterTelefon",
+        "sekreterParola",
+        "sekreterParolaTekrar"
+    ];
+
+    sekreterFormu.reset();
+
+    alanKimlikleri.forEach((id) => {
+        const alan = document.getElementById(id);
+
+        if (alan) {
+            alan.value = "";
+        }
+    });
+
+    sekreterFormu.addEventListener(
+        "submit",
+        sekreterOlustur
+    );
+}
+
+async function sekreterOlustur(event) {
+    const form = event.currentTarget;
+    event.preventDefault();
+
+    const ad =
+        document.getElementById("sekreterAd").value.trim();
+
+    const soyad =
+        document.getElementById("sekreterSoyad").value.trim();
+
+    const eposta =
+        document.getElementById("sekreterEposta").value.trim();
+
+    const telefonNumarasi =
+        document.getElementById("sekreterTelefon").value.trim();
+
+    const parola =
+        document.getElementById("sekreterParola").value;
+
+    const parolaTekrar =
+        document.getElementById("sekreterParolaTekrar").value;
+
+    const mesajAlani =
+        document.getElementById("sekreterMesajAlani");
+
+    if (parola !== parolaTekrar) {
+        mesajAlani.textContent =
+            "Parola ve parola tekrarı aynı olmalıdır.";
+
+        mesajAlani.className = "mesaj hata";
+        return;
+    }
+
+    if (!/^[0-9]{11}$/.test(telefonNumarasi)) {
+        mesajAlani.textContent =
+            "Telefon numarası 11 rakamdan oluşmalıdır.";
+
+        mesajAlani.className = "mesaj hata";
+        return;
+    }
+
+    const buton =
+        form.querySelector("button[type='submit']");
+
+    buton.disabled = true;
+    buton.textContent = "Kaydediliyor...";
+
+    try {
+        const cevap = await apiIstegi(
+            "/api/Sekreter/hesapli",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    eposta: eposta,
+                    parola: parola,
+                    ad: ad,
+                    soyad: soyad,
+                    telefonNumarasi: telefonNumarasi
+                })
+            }
+        );
+
+        if (!cevap.ok) {
+            const hataMetni = await cevap.text();
+
+            let hataMesaji =
+                "Sekreter oluşturulamadı.";
+
+            if (hataMetni) {
+                try {
+                    const hataVerisi =
+                        JSON.parse(hataMetni);
+
+                    hataMesaji =
+                        hataVerisi.detail ??
+                        hataVerisi.mesaj ??
+                        hataVerisi.title ??
+                        hataMesaji;
+                }
+                catch {
+                    hataMesaji = hataMetni;
+                }
+            }
+
+            throw new Error(hataMesaji);
+        }
+
+        form.reset();
+        mesajAlani.textContent =
+            "Sekreter hesabı başarıyla oluşturuldu.";
+
+        mesajAlani.className = "mesaj basarili";
+    }
+    catch (hata) {
+        mesajAlani.textContent = hata.message;
+        mesajAlani.className = "mesaj hata";
+    }
+    finally {
+        buton.disabled = false;
+        buton.textContent = "Sekreteri Kaydet";
+    }
 }
